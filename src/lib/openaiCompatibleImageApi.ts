@@ -283,6 +283,21 @@ function getResponsesImageResultBase64(result: ResponsesOutputItem['result']): s
   return b64.trim() ? b64 : undefined
 }
 
+function getImageBase64Value(source: object): string | undefined {
+  const record = source as Record<string, unknown>
+  return getStringValue(record, 'b64_json') ??
+    getStringValue(record, 'base64') ??
+    getStringValue(record, 'image') ??
+    getStringValue(record, 'data')
+}
+
+function getImageUrlValue(source: object): string | undefined {
+  const record = source as Record<string, unknown>
+  return getStringValue(record, 'url') ??
+    getStringValue(record, 'image_url') ??
+    getStringValue(record, 'imageUrl')
+}
+
 async function parseImagesApiResponse(payload: ImageApiResponse, mime: string, signal?: AbortSignal): Promise<CallApiResult> {
   const data = payload.data
   if (!Array.isArray(data) || !data.length) {
@@ -292,19 +307,20 @@ async function parseImagesApiResponse(payload: ImageApiResponse, mime: string, s
   }
 
   const images: string[] = []
-  const rawImageUrls = data.map((item) => item.url).filter(isHttpUrl)
+  const rawImageUrls = data.map((item) => getImageUrlValue(item)).filter(isHttpUrl)
   const revisedPrompts: Array<string | undefined> = []
   try {
     for (const item of data) {
-      const b64 = item.b64_json
+      const b64 = getImageBase64Value(item)
       if (b64) {
         images.push(normalizeBase64Image(b64, mime))
         revisedPrompts.push(typeof item.revised_prompt === 'string' ? item.revised_prompt : undefined)
         continue
       }
 
-      if (isHttpUrl(item.url) || isDataUrl(item.url)) {
-        images.push(await fetchImageUrlAsDataUrl(item.url, mime, signal))
+      const url = getImageUrlValue(item)
+      if (isHttpUrl(url) || isDataUrl(url)) {
+        images.push(await fetchImageUrlAsDataUrl(url, mime, signal))
         revisedPrompts.push(typeof item.revised_prompt === 'string' ? item.revised_prompt : undefined)
       }
     }
@@ -335,7 +351,7 @@ async function parseImagesApiResponse(payload: ImageApiResponse, mime: string, s
 
 function eventToImageResponseItem(event: Record<string, unknown>): ImageResponseItem {
   return {
-    b64_json: getStringValue(event, 'b64_json'),
+    b64_json: getImageBase64Value(event),
     revised_prompt: getStringValue(event, 'revised_prompt'),
     size: getStringValue(event, 'size'),
     quality: getStringValue(event, 'quality'),

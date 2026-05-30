@@ -99,6 +99,51 @@ describe('callImageApi', () => {
     }])
   })
 
+  it('parses OpenAI-compatible image aliases from non-stream responses', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
+      data: [
+        { base64: 'YmFzZTY0' },
+        { image: 'aW1hZ2U=' },
+      ],
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    }))
+
+    const result = await callImageApi({
+      settings: { ...DEFAULT_SETTINGS, apiKey: 'test-key' },
+      prompt: 'prompt',
+      params: { ...DEFAULT_PARAMS },
+      inputImageDataUrls: [],
+    })
+
+    expect(result.images).toEqual([
+      'data:image/png;base64,YmFzZTY0',
+      'data:image/png;base64,aW1hZ2U=',
+    ])
+  })
+
+  it('does not request Images API streaming by default', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
+      data: [{ b64_json: 'aW1hZ2U=' }],
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    }))
+
+    await callImageApi({
+      settings: { ...DEFAULT_SETTINGS, apiKey: 'test-key' },
+      prompt: 'prompt',
+      params: { ...DEFAULT_PARAMS },
+      inputImageDataUrls: [],
+    })
+
+    const [, init] = fetchMock.mock.calls[0]
+    const body = JSON.parse(String((init as RequestInit).body))
+    expect(body.stream).toBeUndefined()
+    expect(body.partial_images).toBeUndefined()
+  })
+
   it('streams Images API partial images and resolves the final completed image', async () => {
     const streamBody = [
       'data: {"type":"image_generation.partial_image","partial_image_index":0,"b64_json":"cGFydGlhbA=="}',
