@@ -6,16 +6,17 @@
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 100%;
-  --foreground: 240 10% 10%;
-  --muted: 240 5% 96%;
-  --muted-foreground: 240 4% 46%;
-  --border: 240 6% 90%;
-  --input: 240 6% 90%;
-  --primary: 221 83% 53%;
+  color-scheme: dark;
+  --background: 240 10% 4%;
+  --foreground: 0 0% 98%;
+  --muted: 240 4% 16%;
+  --muted-foreground: 240 5% 65%;
+  --border: 240 4% 22%;
+  --input: 240 4% 22%;
+  --primary: 187 86% 53%;
   --primary-foreground: 0 0% 100%;
-  --sidebar: 240 5% 96%;
-  --sidebar-foreground: 240 10% 10%;
+  --sidebar: 240 5% 12%;
+  --sidebar-foreground: 0 0% 98%;
   --font-ui-sans: 'HarmonyOS Sans SC', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --font-mono: 'Maple Mono', 'Cascadia Code', 'SF Mono', Menlo, Consolas, monospace;
   --safe-area-top: env(safe-area-inset-top, 0px);
@@ -29,10 +30,27 @@ html {
   overflow-y: scroll;
 }
 
+html:has([data-home-main]) {
+  overflow: hidden;
+}
+
 body {
   padding: 0;
   -webkit-user-select: none;
   user-select: none;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(36, 211, 238, 0.08), transparent 30rem),
+    radial-gradient(circle at 78% 10%, rgba(255, 111, 97, 0.07), transparent 28rem),
+    #09090b;
+}
+
+body:has([data-home-main]) {
+  overflow: hidden;
+}
+
+#root:has([data-home-main]) {
+  height: 100vh;
+  overflow: hidden;
 }
 
 input,
@@ -48,7 +66,7 @@ select,
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: #3f3f46 transparent;
 }
 
 img {
@@ -69,28 +87,9 @@ body.drag-selecting * {
   user-select: none !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: 240 10% 4%;
-    --foreground: 0 0% 98%;
-    --muted: 240 4% 16%;
-    --muted-foreground: 240 5% 65%;
-    --border: 240 4% 22%;
-    --input: 240 4% 22%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
-    --sidebar: 240 5% 12%;
-    --sidebar-foreground: 0 0% 98%;
-  }
-
-  * {
-    scrollbar-color: #3f3f46 transparent;
-  }
-}
-
 ::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #52525b; }
 ::-webkit-scrollbar-track { background: transparent; }
 
 /* 隐藏 number input 的增减按?*/
@@ -101,11 +100,6 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 input[type="number"] {
   -moz-appearance: textfield;
-}
-
-@media (prefers-color-scheme: dark) {
-  ::-webkit-scrollbar-thumb { background: #3f3f46; }
-  ::-webkit-scrollbar-thumb:hover { background: #52525b; }
 }
 
 @keyframes pulse-border {
@@ -485,4 +479,1979 @@ input[type="number"] {
 .ios-rounded-scroll-fix {
   isolation: isolate;
   -webkit-mask-image: -webkit-radial-gradient(white, black);
+}
+
+.retouch-settings-modal {
+  color: #27272a;
+}
+
+.retouch-settings-modal .retouch-settings-disabled-input:disabled {
+  border-color: rgba(14, 165, 233, 0.28) !important;
+  background: #eef7ff !important;
+  color: #155e75 !important;
+  -webkit-text-fill-color: #155e75;
+  box-shadow: inset 0 0 0 1px rgba(14, 165, 233, 0.08);
+  opacity: 1;
+}
+
+.retouch-settings-modal .retouch-settings-disabled-input:disabled::placeholder {
+  color: #0e7490 !important;
+  opacity: 0.72;
+}
+
+.retouch-settings-modal input::placeholder,
+.retouch-settings-modal textarea::placeholder {
+  color: #52525b !important;
+  opacity: 0.82;
+}
+
+.retouch-settings-modal input:not(:disabled),
+.retouch-settings-modal textarea:not(:disabled),
+.retouch-settings-modal select:not(:disabled) {
+  color: #18181b;
+}
+
+.retouch-settings-api-card {
+  border: 1px solid rgba(14, 165, 233, 0.18);
+  border-radius: 1rem;
+  background: linear-gradient(135deg, rgba(236, 254, 255, 0.78), rgba(255, 255, 255, 0.86));
+  padding: 0.82rem;
+}
+
+.retouch-settings-api-help {
+  border-radius: 0.5rem;
+  background: rgba(14, 165, 233, 0.1);
+  color: #0369a1;
+  padding: 0.2rem 0.44rem;
+  font-size: 0.72rem;
+  font-weight: 820;
+  text-decoration: none;
+}
+
+.retouch-settings-api-help:hover {
+  background: rgba(14, 165, 233, 0.16);
+  color: #075985;
+}
+
+.retouch-settings-api-input {
+  border-color: rgba(14, 165, 233, 0.24);
+  background: #ffffff;
+  color: #164e63 !important;
+  -webkit-text-fill-color: #164e63;
+}
+
+.retouch-settings-api-input:focus {
+  border-color: rgba(14, 165, 233, 0.58);
+  box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.12);
+}
+
+.retouch-settings-api-input::placeholder {
+  color: #0e7490 !important;
+  opacity: 0.7;
+}
+
+.retouch-settings-forward-note {
+  display: block;
+  color: #0f766e;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.retouch-settings-forward-card {
+  border-color: rgba(14, 165, 233, 0.22) !important;
+  background: rgba(236, 254, 255, 0.82) !important;
+}
+
+.retouch-settings-forward-card [data-selectable-text] {
+  color: #155e75 !important;
+  line-height: 1.55;
+}
+
+.retouch-settings-model-card {
+  display: grid;
+  gap: 0.5rem;
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  border-radius: 1rem;
+  background: linear-gradient(135deg, rgba(236, 254, 255, 0.85), rgba(255, 255, 255, 0.72));
+  padding: 0.75rem;
+}
+
+.retouch-settings-model-label {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.retouch-settings-model-label span {
+  color: #164e63;
+  font-size: 0.9rem;
+  font-weight: 780;
+}
+
+.retouch-settings-model-label small {
+  color: #0e7490;
+  font-size: 0.72rem;
+  font-weight: 680;
+}
+
+.retouch-settings-model-input-shell {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(14, 165, 233, 0.28);
+  border-radius: 0.86rem;
+  background: #ffffff;
+  padding: 0.42rem 0.55rem;
+  box-shadow: inset 0 0 0 1px rgba(14, 165, 233, 0.06);
+}
+
+.retouch-settings-model-input-shell > span {
+  border-radius: 0.5rem;
+  background: rgba(14, 165, 233, 0.12);
+  color: #0369a1;
+  padding: 0.24rem 0.38rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.68rem;
+  font-weight: 820;
+}
+
+.retouch-settings-model-input {
+  min-width: 0;
+  border: 0;
+  background: transparent !important;
+  color: #164e63 !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.96rem;
+  font-weight: 760;
+  outline: none;
+  -webkit-text-fill-color: #164e63;
+}
+
+@media (prefers-color-scheme: dark) {
+  .retouch-settings-modal {
+    color: #f4f4f5;
+  }
+
+  .retouch-settings-modal .retouch-settings-disabled-input:disabled {
+    border-color: rgba(34, 211, 238, 0.36) !important;
+    background: rgba(8, 47, 73, 0.58) !important;
+    color: #a5f3fc !important;
+    -webkit-text-fill-color: #a5f3fc;
+    box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.08);
+  }
+
+  .retouch-settings-modal .retouch-settings-disabled-input:disabled::placeholder {
+    color: #67e8f9 !important;
+    opacity: 0.78;
+  }
+
+  .retouch-settings-modal input::placeholder,
+  .retouch-settings-modal textarea::placeholder {
+    color: #a1a1aa !important;
+    opacity: 0.88;
+  }
+
+  .retouch-settings-modal input:not(:disabled),
+  .retouch-settings-modal textarea:not(:disabled),
+  .retouch-settings-modal select:not(:disabled) {
+    color: #f4f4f5;
+  }
+
+  .retouch-settings-api-card {
+    border-color: rgba(34, 211, 238, 0.22);
+    background: linear-gradient(135deg, rgba(8, 47, 73, 0.36), rgba(255, 255, 255, 0.035));
+  }
+
+  .retouch-settings-api-help {
+    background: rgba(34, 211, 238, 0.14);
+    color: #67e8f9;
+  }
+
+  .retouch-settings-api-help:hover {
+    background: rgba(34, 211, 238, 0.2);
+    color: #a5f3fc;
+  }
+
+  .retouch-settings-api-input {
+    border-color: rgba(34, 211, 238, 0.28);
+    background: rgba(0, 0, 0, 0.32);
+    color: #ecfeff !important;
+    -webkit-text-fill-color: #ecfeff;
+  }
+
+  .retouch-settings-api-input:focus {
+    border-color: rgba(34, 211, 238, 0.62);
+    box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.16);
+  }
+
+  .retouch-settings-api-input::placeholder {
+    color: #67e8f9 !important;
+    opacity: 0.72;
+  }
+
+  .retouch-settings-forward-note {
+    color: #67e8f9;
+  }
+
+  .retouch-settings-forward-card {
+    border-color: rgba(34, 211, 238, 0.24) !important;
+    background: rgba(8, 47, 73, 0.32) !important;
+  }
+
+  .retouch-settings-forward-card [data-selectable-text] {
+    color: #a5f3fc !important;
+  }
+
+  .retouch-settings-model-card {
+    border-color: rgba(34, 211, 238, 0.2);
+    background: linear-gradient(135deg, rgba(8, 47, 73, 0.48), rgba(255, 255, 255, 0.035));
+  }
+
+  .retouch-settings-model-label span {
+    color: #ecfeff;
+  }
+
+  .retouch-settings-model-label small {
+    color: #67e8f9;
+  }
+
+  .retouch-settings-model-input-shell {
+    border-color: rgba(34, 211, 238, 0.28);
+    background: rgba(0, 0, 0, 0.32);
+  }
+
+  .retouch-settings-model-input-shell > span {
+    background: rgba(34, 211, 238, 0.14);
+    color: #67e8f9;
+  }
+
+  .retouch-settings-model-input {
+    color: #f4f4f5 !important;
+    -webkit-text-fill-color: #f4f4f5;
+  }
+}
+
+.retouch-workspace {
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  margin: 0 auto;
+  padding-left: max(0.38rem, var(--safe-area-left)) !important;
+  padding-right: max(0.38rem, var(--safe-area-right)) !important;
+}
+
+.retouch-studio-shell {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0;
+  background: #0b0b0d;
+  color: #f4f4f5;
+  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.38);
+}
+
+.retouch-studio-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 3.45rem;
+  padding: 0.54rem 0.78rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: #121214;
+}
+
+.retouch-studio-title {
+  min-width: 0;
+}
+
+.retouch-studio-title h2 {
+  font-size: 1.18rem;
+  font-weight: 760;
+  line-height: 1.2;
+}
+
+.retouch-studio-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.24rem;
+  color: #a1a1aa;
+  font-size: 0.84rem;
+  font-weight: 620;
+}
+
+.retouch-studio-status-row span {
+  min-width: 0;
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.retouch-studio-status-row .is-ready {
+  color: #86efac;
+}
+
+.retouch-studio-status-row .is-warning {
+  color: #fbbf24;
+}
+
+.retouch-studio-hint {
+  flex: 0 0 auto;
+  color: #a1a1aa;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.retouch-api-card button {
+  min-height: 2rem;
+  border-radius: 6px;
+  padding: 0 0.78rem;
+  font-size: 0.74rem;
+  font-weight: 720;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.retouch-api-card button {
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  background: rgba(255, 255, 255, 0.055);
+  color: #e4e4e7;
+}
+
+.retouch-api-card button:hover {
+  border-color: rgba(34, 211, 238, 0.45);
+  background: rgba(34, 211, 238, 0.12);
+  color: #ecfeff;
+}
+
+.retouch-studio-body {
+  min-height: 0;
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(26rem, 29rem) minmax(0, 1fr) minmax(26rem, 29rem) minmax(14rem, 16rem);
+  overflow: hidden;
+}
+
+.retouch-workflow-panel,
+.retouch-control-panel,
+.retouch-output-panel {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0.68rem;
+  background: #111113;
+}
+
+.retouch-workflow-panel,
+.retouch-control-panel,
+.retouch-output-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.retouch-workflow-panel {
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.retouch-left-body {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(10.5rem, 0.86fr) minmax(0, 1.14fr);
+  gap: 0.62rem;
+  flex: 1 1 auto;
+  margin-top: 0.62rem;
+  overflow: hidden;
+}
+
+.retouch-primary-menu,
+.retouch-secondary-menu {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.retouch-primary-title,
+.retouch-secondary-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.55rem;
+  margin-bottom: 0.52rem;
+}
+
+.retouch-primary-title span,
+.retouch-secondary-head span {
+  color: #f4f4f5;
+  font-size: 1.08rem;
+  font-weight: 820;
+}
+
+.retouch-primary-title strong,
+.retouch-secondary-head small {
+  color: #a1a1aa;
+  font-size: 0.9rem;
+  font-weight: 720;
+}
+
+.retouch-secondary-head div {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.retouch-secondary-head strong {
+  color: #67e8f9;
+  font-size: 1.18rem;
+  font-weight: 840;
+}
+
+.retouch-secondary-head small {
+  max-width: 9rem;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.retouch-output-panel {
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.retouch-control-panel {
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.retouch-control-panel.is-dragging {
+  border-left-color: rgba(34, 211, 238, 0.48);
+  background: #0d1c20;
+}
+
+.retouch-control-panel.is-muted {
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.retouch-preview-panel {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  padding: 0.44rem;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    #080809;
+  background-size: 28px 28px;
+}
+
+.retouch-api-card,
+.retouch-current-brief,
+.retouch-task-summary,
+.retouch-empty-result {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.retouch-api-card {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.62rem 0.68rem;
+  border-color: rgba(34, 211, 238, 0.22);
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.1), rgba(255, 255, 255, 0.035));
+}
+
+.retouch-api-card div {
+  min-width: 0;
+  display: grid;
+  gap: 0.18rem;
+}
+
+.retouch-api-card span,
+.retouch-section-heading strong,
+.retouch-preview-toolbar span,
+.retouch-task-summary span,
+.retouch-task-summary small {
+  color: #a1a1aa;
+  font-size: 0.9rem;
+  font-weight: 680;
+}
+
+.retouch-api-url {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #a5f3fc;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 1rem;
+  font-weight: 840;
+  letter-spacing: 0;
+}
+
+.retouch-api-card small {
+  color: #67e8f9;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.82rem;
+  font-weight: 740;
+}
+
+.retouch-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.62rem;
+  margin-bottom: 0.42rem;
+}
+
+.retouch-section-heading span {
+  color: #f4f4f5;
+  font-size: 1.06rem;
+  font-weight: 760;
+}
+
+.retouch-template-list {
+  min-height: 0;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.46rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 0.12rem;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(34, 211, 238, 0.36) rgba(255, 255, 255, 0.06);
+}
+
+.retouch-template-list::-webkit-scrollbar {
+  width: 0.42rem;
+}
+
+.retouch-template-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.045);
+  border-radius: 999px;
+}
+
+.retouch-template-list::-webkit-scrollbar-thumb {
+  background: rgba(34, 211, 238, 0.34);
+  border-radius: 999px;
+}
+
+.retouch-category-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.42rem;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 0.12rem;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(34, 211, 238, 0.36) rgba(255, 255, 255, 0.06);
+}
+
+.retouch-category-button {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.3rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.52rem;
+  min-height: 4.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #d4d4d8;
+  padding: 0.68rem 0.72rem;
+  text-align: left;
+}
+
+.retouch-category-button:hover,
+.retouch-category-button.is-active {
+  border-color: rgba(34, 211, 238, 0.5);
+  background: rgba(34, 211, 238, 0.12);
+  color: #67e8f9;
+}
+
+.retouch-category-button svg {
+  width: 1.36rem;
+  height: 1.36rem;
+}
+
+.retouch-category-copy {
+  min-width: 0;
+  display: grid;
+  gap: 0.18rem;
+}
+
+.retouch-category-title {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1.08rem;
+  font-weight: 760;
+}
+
+.retouch-category-summary {
+  min-width: 0;
+  overflow: hidden;
+  color: #a1a1aa;
+  font-size: 0.76rem;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.retouch-category-count {
+  position: absolute;
+  right: 0.5rem;
+  top: 0.45rem;
+  display: grid;
+  place-items: center;
+  min-width: 1.08rem;
+  height: 1.08rem;
+  border-radius: 999px;
+  background: #22d3ee;
+  color: #071113;
+  font-size: 0.64rem;
+  font-weight: 860;
+}
+
+.retouch-option-panel {
+  display: grid;
+  gap: 0.38rem;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.5rem;
+}
+
+.retouch-option-row {
+  display: grid;
+  grid-template-columns: 3.1rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.42rem;
+}
+
+.retouch-option-row > span {
+  color: #a1a1aa;
+  font-size: 0.9rem;
+  font-weight: 740;
+}
+
+.retouch-option-row > div {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+}
+
+.retouch-option-row button {
+  position: relative;
+  min-height: 1.72rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.045);
+  color: #d4d4d8;
+  padding: 0 0.46rem;
+  font-size: 0.86rem;
+  font-weight: 740;
+}
+
+.retouch-option-row button:hover,
+.retouch-option-row button.is-active {
+  border-color: rgba(34, 211, 238, 0.5);
+  background: rgba(34, 211, 238, 0.13);
+  color: #67e8f9;
+}
+
+.retouch-option-row button.is-active::after,
+.retouch-segment-group > button.is-active::after {
+  position: absolute;
+  right: 0.22rem;
+  top: 0.16rem;
+  display: grid;
+  place-items: center;
+  min-width: 1.06rem;
+  height: 1.06rem;
+  border-radius: 999px;
+  background: #22d3ee;
+  color: #071113;
+  content: '选';
+  font-size: 0.58rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.retouch-template-group {
+  display: grid;
+  gap: 0.38rem;
+}
+
+.retouch-group-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.26rem;
+}
+
+.retouch-group-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.24rem;
+  min-height: 1.72rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.045);
+  color: #a1a1aa;
+  padding: 0 0.48rem;
+  font-size: 0.84rem;
+  font-weight: 760;
+}
+
+.retouch-group-tabs button strong {
+  display: grid;
+  place-items: center;
+  min-width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  background: rgba(34, 211, 238, 0.2);
+  color: #a5f3fc;
+  font-size: 0.62rem;
+  font-weight: 840;
+}
+
+.retouch-group-tabs button:hover,
+.retouch-group-tabs button.is-active {
+  border-color: rgba(34, 211, 238, 0.5);
+  background: rgba(34, 211, 238, 0.13);
+  color: #67e8f9;
+}
+
+.retouch-template-group-title {
+  color: #a1a1aa;
+  font-size: 0.86rem;
+  font-weight: 780;
+}
+
+.retouch-template-chip-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.38rem;
+}
+
+.retouch-template-card {
+  display: grid;
+  align-content: center;
+  gap: 0.16rem;
+  min-width: 0;
+  min-height: 3.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.46rem 0.52rem;
+  color: #d4d4d8;
+  text-align: left;
+}
+
+.retouch-template-card:hover,
+.retouch-template-card.is-active {
+  border-color: rgba(34, 211, 238, 0.5);
+  background: rgba(34, 211, 238, 0.1);
+  color: #67e8f9;
+}
+
+.retouch-template-card.is-active {
+  box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.22);
+}
+
+.retouch-template-card-title {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.42rem;
+}
+
+.retouch-template-card strong,
+.retouch-current-brief strong,
+.retouch-task-summary strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #f4f4f5;
+  font-size: 1.08rem;
+  font-weight: 760;
+}
+
+.retouch-template-card small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #a1a1aa;
+  font-size: 0.86rem;
+  font-weight: 620;
+}
+
+.retouch-selected-mark {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #22d3ee;
+  color: #071113;
+  padding: 0.14rem 0.34rem;
+  font-size: 0.62rem;
+  font-weight: 860;
+}
+
+.retouch-selected-configs {
+  display: grid;
+  gap: 0.38rem;
+  margin-top: 0.62rem;
+  border: 1px solid rgba(34, 211, 238, 0.22);
+  border-radius: 8px;
+  background: rgba(8, 47, 73, 0.28);
+  padding: 0.52rem;
+}
+
+.retouch-selected-configs > span {
+  color: #a5f3fc;
+  font-size: 0.9rem;
+  font-weight: 780;
+}
+
+.retouch-selected-configs > div {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.retouch-selected-configs button {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  gap: 0.28rem;
+  min-height: 1.72rem;
+  border: 1px solid rgba(34, 211, 238, 0.36);
+  border-radius: 999px;
+  background: rgba(34, 211, 238, 0.13);
+  color: #a5f3fc;
+  padding: 0 0.42rem 0 0.58rem;
+}
+
+.retouch-selected-configs button strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: inherit;
+  font-size: 0.84rem;
+  font-weight: 780;
+}
+
+.retouch-preview-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.44rem;
+}
+
+.retouch-preview-toolbar > div:first-child {
+  min-width: 0;
+  display: grid;
+  gap: 0.12rem;
+}
+
+.retouch-preview-toolbar strong {
+  color: #f4f4f5;
+  font-size: 1rem;
+  font-weight: 760;
+}
+
+.retouch-preview-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.retouch-zoom-control {
+  display: grid;
+  grid-template-columns: auto minmax(7rem, 11rem) 3.4rem;
+  align-items: center;
+  gap: 0.46rem;
+  min-width: min(18rem, 100%);
+  padding: 0.22rem 0.32rem;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.retouch-zoom-control button {
+  min-height: 1.78rem;
+  border-radius: 5px;
+  color: #a1a1aa;
+  padding: 0 0.58rem;
+  font-size: 0.86rem;
+  font-weight: 780;
+}
+
+.retouch-zoom-control button:hover,
+.retouch-zoom-control button.is-active {
+  background: rgba(34, 211, 238, 0.14);
+  color: #67e8f9;
+}
+
+.retouch-zoom-control button:disabled {
+  cursor: not-allowed;
+  color: #52525b;
+}
+
+.retouch-zoom-control input[type="range"] {
+  width: 100%;
+  min-width: 0;
+  height: 1.25rem;
+  accent-color: #22d3ee;
+  cursor: pointer;
+}
+
+.retouch-zoom-control input[type="range"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.retouch-zoom-control span {
+  color: #a5f3fc;
+  font-size: 0.86rem;
+  font-weight: 820;
+  text-align: right;
+}
+
+.retouch-tool-button {
+  min-height: 2.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.055);
+  color: #d4d4d8;
+  padding: 0 0.78rem;
+  font-size: 0.92rem;
+  font-weight: 760;
+}
+
+.retouch-tool-button:hover,
+.retouch-tool-button.is-active {
+  border-color: rgba(34, 211, 238, 0.52);
+  background: rgba(34, 211, 238, 0.14);
+  color: #67e8f9;
+}
+
+.retouch-tool-button:disabled {
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.035);
+  color: #52525b;
+}
+
+.retouch-preview-frame {
+  position: relative;
+  min-height: 0;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: #050506;
+  padding: 0.45rem;
+}
+
+.retouch-preview-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+.retouch-preview-pan-layer {
+  position: absolute;
+  inset: 0;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.retouch-image-plane,
+.retouch-compare-plane,
+.retouch-compare-before {
+  position: absolute;
+  inset: 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+.retouch-image-plane,
+.retouch-compare-plane {
+  display: grid;
+  place-items: center;
+}
+
+.retouch-image-plane {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.retouch-image-fit-box {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.retouch-preview-image,
+.retouch-image-plane > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  object-fit: contain;
+  object-position: center center;
+  border-radius: 8px;
+  filter: drop-shadow(0 18px 32px rgba(0, 0, 0, 0.35));
+  transform-origin: center center;
+  transition: transform 160ms ease;
+  will-change: transform;
+}
+
+.retouch-compare-before {
+  overflow: hidden;
+}
+
+.retouch-compare-label {
+  position: absolute;
+  top: 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(9, 9, 11, 0.72);
+  color: #f4f4f5;
+  padding: 0.22rem 0.48rem;
+  font-size: 0.66rem;
+  font-weight: 780;
+}
+
+.retouch-compare-label.is-before {
+  left: 0.7rem;
+}
+
+.retouch-compare-label.is-after {
+  right: 0.7rem;
+}
+
+.retouch-compare-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2.4rem;
+  transform: translateX(-50%);
+  cursor: ew-resize;
+  color: #22d3ee;
+}
+
+.retouch-compare-handle::before {
+  position: absolute;
+  inset: 0 auto 0 50%;
+  width: 2px;
+  content: '';
+  background: #22d3ee;
+  box-shadow: 0 0 0 1px rgba(8, 47, 73, 0.9), 0 0 18px rgba(34, 211, 238, 0.42);
+}
+
+.retouch-compare-handle span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1.7rem;
+  height: 1.7rem;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(34, 211, 238, 0.8);
+  border-radius: 999px;
+  background: rgba(9, 9, 11, 0.86);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+}
+
+.retouch-compare-handle span::before,
+.retouch-compare-handle span::after {
+  position: absolute;
+  top: 50%;
+  width: 0.38rem;
+  height: 0.38rem;
+  content: '';
+  border-top: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+}
+
+.retouch-compare-handle span::before {
+  left: 0.42rem;
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+.retouch-compare-handle span::after {
+  right: 0.42rem;
+  transform: translateY(-50%) rotate(135deg);
+}
+
+.retouch-preview-loading,
+.retouch-preview-empty {
+  color: #a1a1aa;
+  font-size: 0.88rem;
+  font-weight: 760;
+}
+
+.retouch-preview-empty {
+  display: grid;
+  place-items: center;
+  gap: 0.38rem;
+  min-width: min(24rem, 86%);
+  min-height: 11rem;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  text-align: center;
+}
+
+.retouch-preview-empty strong {
+  color: #f4f4f5;
+  font-size: 1.08rem;
+  font-weight: 780;
+}
+
+.retouch-preview-empty span {
+  max-width: 22rem;
+  color: #a1a1aa;
+  font-size: 0.88rem;
+  font-weight: 680;
+}
+
+.retouch-result-thumb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 0;
+  background: #151519;
+  color: #a1a1aa;
+}
+
+.retouch-result-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.retouch-result-thumb span {
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.retouch-running-badge,
+.retouch-error-badge,
+.retouch-fit-badge {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  border-radius: 999px;
+  padding: 0.32rem 0.58rem;
+  font-size: 0.7rem;
+  font-weight: 780;
+}
+
+.retouch-fit-badge {
+  right: auto;
+  left: 1rem;
+  border: 1px solid rgba(34, 211, 238, 0.18);
+  border-color: rgba(34, 211, 238, 0.18);
+  background: rgba(8, 47, 73, 0.66);
+  color: #a5f3fc;
+}
+
+.retouch-running-badge {
+  background: rgba(34, 211, 238, 0.16);
+  color: #67e8f9;
+  border: 1px solid rgba(34, 211, 238, 0.38);
+}
+
+.retouch-error-badge {
+  background: rgba(248, 113, 113, 0.14);
+  color: #fca5a5;
+  border: 1px solid rgba(248, 113, 113, 0.34);
+}
+
+.retouch-current-brief {
+  padding: 0.65rem;
+}
+
+.retouch-current-brief p {
+  margin-top: 0.36rem;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  overflow: hidden;
+  color: #d4d4d8;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.retouch-task-summary {
+  display: grid;
+  gap: 0.22rem;
+  padding: 0.65rem;
+}
+
+.retouch-task-summary.is-done {
+  border-color: rgba(134, 239, 172, 0.3);
+}
+
+.retouch-task-summary.is-running {
+  border-color: rgba(34, 211, 238, 0.32);
+}
+
+.retouch-task-summary.is-error {
+  border-color: rgba(248, 113, 113, 0.32);
+}
+
+.retouch-task-summary p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  color: #fca5a5;
+  font-size: 0.84rem;
+  line-height: 1.42;
+}
+
+.retouch-result-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.36rem;
+  flex: 0 0 auto;
+}
+
+.retouch-result-strip .retouch-result-thumb {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.retouch-empty-result {
+  grid-column: 1 / -1;
+  min-height: 4.6rem;
+  display: grid;
+  place-items: center;
+  gap: 0.3rem;
+  color: #a1a1aa;
+  font-size: 0.72rem;
+  font-weight: 680;
+}
+
+.retouch-history-list {
+  min-height: 0;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.42rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 0.12rem;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(34, 211, 238, 0.4) rgba(255, 255, 255, 0.06);
+}
+
+.retouch-output-panel > .retouch-history-list {
+  flex: 1 1 auto;
+  max-height: none;
+}
+
+.retouch-output-panel > .retouch-current-brief p {
+  -webkit-line-clamp: 3;
+}
+
+.retouch-output-panel > .retouch-result-strip {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.retouch-output-panel > .retouch-result-strip .retouch-result-thumb {
+  min-height: 2.9rem;
+}
+
+.retouch-history-list::-webkit-scrollbar {
+  width: 0.42rem;
+}
+
+.retouch-history-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.045);
+  border-radius: 999px;
+}
+
+.retouch-history-list::-webkit-scrollbar-thumb {
+  background: rgba(34, 211, 238, 0.34);
+  border-radius: 999px;
+}
+
+.retouch-history-card {
+  display: grid;
+  grid-template-columns: 2.45rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.46rem;
+  min-height: 2.76rem;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #d4d4d8;
+  padding: 0.36rem;
+  text-align: left;
+}
+
+.retouch-history-card:hover,
+.retouch-history-card.is-active {
+  border-color: rgba(34, 211, 238, 0.46);
+  background: rgba(34, 211, 238, 0.1);
+}
+
+.retouch-history-thumb {
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  overflow: hidden;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #a1a1aa;
+}
+
+.retouch-history-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.retouch-history-card > span {
+  min-width: 0;
+  display: grid;
+  gap: 0.12rem;
+}
+
+.retouch-history-card strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #f4f4f5;
+  font-size: 0.88rem;
+  font-weight: 760;
+}
+
+.retouch-history-card small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #a1a1aa;
+  font-size: 0.76rem;
+  font-weight: 660;
+}
+
+.retouch-empty-history {
+  min-height: 3.2rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  color: #a1a1aa;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.retouch-side-submit {
+  min-height: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.56rem;
+  border: 1px solid rgba(34, 211, 238, 0.16);
+  border-radius: 10px;
+  background: rgba(9, 9, 11, 0.78);
+  padding: 0.68rem;
+}
+
+.retouch-side-submit .retouch-upload-button,
+.retouch-mask-button {
+  min-height: 2.42rem;
+}
+
+.retouch-mask-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.38rem;
+  border: 1px solid rgba(34, 211, 238, 0.28);
+  border-radius: 8px;
+  background: rgba(34, 211, 238, 0.08);
+  color: #67e8f9;
+  padding: 0 0.68rem;
+  font-size: 1rem;
+  font-weight: 780;
+}
+
+.retouch-mask-button:hover {
+  border-color: rgba(34, 211, 238, 0.58);
+  background: rgba(34, 211, 238, 0.14);
+}
+
+.retouch-mask-status {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.1rem 0.45rem;
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  border-radius: 8px;
+  background: rgba(8, 47, 73, 0.35);
+  padding: 0.42rem 0.5rem;
+}
+
+.retouch-mask-status span {
+  color: #a5f3fc;
+  font-size: 0.9rem;
+  font-weight: 780;
+}
+
+.retouch-mask-status strong {
+  grid-column: 1;
+  min-width: 0;
+  color: #67e8f9;
+  font-size: 0.78rem;
+  font-weight: 680;
+}
+
+.retouch-mask-status button {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  border-radius: 6px;
+  color: #fca5a5;
+  padding: 0.2rem 0.42rem;
+  font-size: 0.64rem;
+  font-weight: 760;
+}
+
+.retouch-mask-status button:hover {
+  background: rgba(248, 113, 113, 0.12);
+}
+
+.retouch-input-thumb.is-mask-target {
+  border-color: rgba(34, 211, 238, 0.72);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.18);
+}
+
+.retouch-submit-dock {
+  position: relative;
+  z-index: 30;
+  width: 100%;
+  max-width: 1480px;
+  min-height: 0;
+  margin: 0 auto;
+  padding: 0 0.85rem max(0.38rem, var(--safe-area-bottom));
+}
+
+.retouch-submit-shell {
+  display: grid;
+  grid-template-columns: minmax(9.5rem, 12rem) minmax(0, 1fr);
+  gap: 0.62rem;
+  overflow: hidden;
+  border: 1px solid rgba(34, 211, 238, 0.16);
+  border-radius: 10px;
+  background: rgba(9, 9, 11, 0.96);
+  color: #f4f4f5;
+  padding: 0.58rem;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.42);
+}
+
+.retouch-submit-shell.is-dragging {
+  border-color: rgba(34, 211, 238, 0.58);
+  background: rgba(8, 47, 73, 0.92);
+}
+
+.retouch-submit-images {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.32rem;
+}
+
+.retouch-upload-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.36rem;
+  min-height: 2.5rem;
+  border-radius: 8px;
+  border: 1px dashed rgba(34, 211, 238, 0.36);
+  background: rgba(34, 211, 238, 0.08);
+  color: #67e8f9;
+  font-size: 1.02rem;
+  font-weight: 760;
+}
+
+.retouch-upload-button:hover {
+  border-color: rgba(34, 211, 238, 0.7);
+  background: rgba(34, 211, 238, 0.13);
+}
+
+.retouch-thumb-row {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  overflow: hidden;
+}
+
+.retouch-input-thumb {
+  position: relative;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.retouch-input-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.retouch-input-thumb button {
+  position: absolute;
+  right: 0.12rem;
+  top: 0.12rem;
+  display: grid;
+  place-items: center;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  background: rgba(9, 9, 11, 0.8);
+  color: #f4f4f5;
+}
+
+.retouch-thumb-more,
+.retouch-clear-images {
+  color: #a1a1aa;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.retouch-clear-images {
+  border-radius: 6px;
+  padding: 0.22rem 0.42rem;
+}
+
+.retouch-clear-images:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f4f4f5;
+}
+
+.retouch-submit-main {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.42rem;
+  align-items: stretch;
+}
+
+.retouch-prompt-field {
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0.24rem;
+}
+
+.retouch-prompt-field span,
+.retouch-segment-group span {
+  color: #a1a1aa;
+  font-size: 1rem;
+  font-weight: 720;
+}
+
+.retouch-prompt-field textarea {
+  width: 100%;
+  min-height: 100%;
+  max-height: none;
+  resize: none;
+  border-radius: 8px;
+  border: 1px solid rgba(34, 211, 238, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f4f4f5;
+  outline: none;
+  padding: 0.82rem 0.92rem;
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.retouch-prompt-field textarea:focus {
+  border-color: rgba(34, 211, 238, 0.52);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.16);
+}
+
+.retouch-prompt-field textarea::placeholder {
+  color: #71717a;
+}
+
+.retouch-submit-controls {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.48rem;
+}
+
+.retouch-segment-group {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 2.8rem repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 0.28rem;
+}
+
+.retouch-segment-group[aria-label="输出数量"] {
+  grid-template-columns: 2.8rem repeat(2, minmax(0, 1fr));
+}
+
+.retouch-segment-group[aria-label="输出尺寸"] {
+  grid-template-columns: 2.8rem repeat(4, minmax(0, 1fr));
+}
+
+.retouch-segment-group span {
+  align-self: center;
+  padding-left: 0.08rem;
+  font-size: 0.9rem;
+}
+
+.retouch-segment-group > button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  gap: 0.05rem;
+  min-height: 2.05rem;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  background: rgba(255, 255, 255, 0.045);
+  color: #d4d4d8;
+  padding: 0.18rem 0.46rem;
+  font-size: 0.94rem;
+  font-weight: 720;
+}
+
+.retouch-segment-group > button strong {
+  color: inherit;
+  font-size: 0.94rem;
+  font-weight: 760;
+  line-height: 1.08;
+}
+
+.retouch-segment-group > button small {
+  color: #a1a1aa;
+  font-size: 0.76rem;
+  font-weight: 680;
+  line-height: 1.05;
+}
+
+.retouch-segment-group > button:first-of-type {
+  border-radius: 7px;
+}
+
+.retouch-segment-group > button:last-of-type {
+  border-radius: 7px;
+}
+
+.retouch-segment-group > button.is-active {
+  border-color: rgba(34, 211, 238, 0.55);
+  background: rgba(34, 211, 238, 0.15);
+  color: #67e8f9;
+}
+
+.retouch-segment-group > button.is-active small {
+  color: #a5f3fc;
+}
+
+.retouch-submit-button {
+  width: 100%;
+  min-height: 2.7rem;
+  border-radius: 8px;
+  background: #22d3ee;
+  color: #071113;
+  padding: 0 0.95rem;
+  font-size: 1.08rem;
+  font-weight: 820;
+}
+
+.retouch-submit-button:hover {
+  background: #67e8f9;
+}
+
+.retouch-app-main {
+  height: calc(100vh - 3.5rem - var(--safe-area-top));
+  min-height: 0;
+  overflow: hidden;
+}
+
+.retouch-app-grid {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.retouch-app-grid .retouch-workspace {
+  height: 100%;
+}
+
+body:has([data-home-main]) .toast-enter {
+  bottom: auto !important;
+  top: 5rem;
+}
+
+body:has([data-home-main]) {
+  background:
+    radial-gradient(circle at 18% 8%, rgba(36, 211, 238, 0.08), transparent 30rem),
+    radial-gradient(circle at 78% 10%, rgba(255, 111, 97, 0.07), transparent 28rem),
+    #09090b;
+  color: #f4f4f5;
+}
+
+
+body:has([data-home-main]) .retouch-studio-shell input[type="text"] {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: rgba(255, 255, 255, 0.045) !important;
+  color: #f4f4f5 !important;
+}
+
+body:has([data-home-main]) .retouch-studio-shell input[type="text"]::placeholder {
+  color: #71717a;
+}
+
+body:has([data-home-main]) [data-task-grid-root] + div,
+body:has([data-home-main]) [data-task-grid-root],
+body:has([data-home-main]) [data-task-grid-root] p {
+  color: #71717a;
+}
+
+body:has([data-home-main]) .toast-enter {
+  max-width: calc(100vw - 2rem);
+}
+
+@media (min-width: 1400px) {
+  .retouch-studio-shell {
+    font-size: 17px;
+  }
+
+  .retouch-studio-body {
+    grid-template-columns: minmax(27rem, 30rem) minmax(0, 1fr) minmax(27rem, 30rem) minmax(15rem, 17rem);
+  }
+
+  .retouch-control-panel,
+  .retouch-output-panel,
+  .retouch-workflow-panel {
+    padding: 0.74rem;
+  }
+
+  .retouch-category-button,
+  .retouch-template-card {
+    min-height: 4.2rem;
+  }
+
+  .retouch-prompt-field textarea {
+    font-size: 1.14rem;
+  }
+}
+
+@media (max-width: 1180px) {
+  .retouch-studio-body {
+    grid-template-columns: minmax(0, 1fr) minmax(23rem, 25rem) 12.5rem;
+  }
+
+  .retouch-workflow-panel {
+    display: none;
+  }
+
+  .retouch-zoom-control {
+    grid-template-columns: auto minmax(5rem, 8rem) 3.2rem;
+  }
+
+  .retouch-submit-controls {
+    gap: 0.34rem;
+  }
+}
+
+@media (max-width: 980px) {
+  .retouch-studio-body {
+    grid-template-columns: minmax(0, 1fr) minmax(21rem, 23rem) 11.5rem;
+  }
+
+  .retouch-preview-actions {
+    gap: 0.36rem;
+  }
+
+  .retouch-zoom-control {
+    grid-template-columns: auto minmax(6rem, 1fr) 3.1rem;
+    width: 100%;
+  }
+
+  .retouch-tool-button {
+    min-height: 2rem;
+    padding: 0 0.58rem;
+    font-size: 0.72rem;
+  }
+
+  .retouch-prompt-field textarea {
+    font-size: 1.02rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .retouch-studio-header {
+    align-items: stretch;
+    min-height: 4.8rem;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .retouch-studio-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .retouch-control-panel {
+    display: none;
+  }
+
+  .retouch-submit-shell,
+  .retouch-submit-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .retouch-submit-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .retouch-segment-group {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: center;
+  }
+
+  .retouch-segment-group[aria-label="输出数量"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .retouch-segment-group[aria-label="输出尺寸"] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .retouch-segment-group span {
+    grid-column: 1 / -1;
+    padding-left: 0;
+  }
+
+  .retouch-submit-button {
+    grid-column: 1 / -1;
+    min-height: 2.45rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .retouch-app-main {
+    height: calc(100vh - 3.5rem - var(--safe-area-top));
+  }
+
+  .retouch-app-grid {
+    gap: 0;
+    padding-top: 0;
+  }
+
+  .retouch-workspace {
+    margin-top: 0;
+  }
+
+  .retouch-preview-panel {
+    padding: 0.55rem;
+  }
+
+  .retouch-preview-stage {
+    width: 100%;
+    height: 100%;
+  }
+
+  .retouch-submit-dock {
+    margin-top: 0;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .retouch-submit-shell {
+    padding: 0.55rem;
+    gap: 0.55rem;
+  }
+
+  .retouch-submit-images {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+
+  .retouch-upload-button {
+    min-width: 8rem;
+  }
+
+  .retouch-prompt-field textarea {
+    min-height: 100%;
+    max-height: none;
+  }
+
+  .retouch-segment-group > button,
+  .retouch-segment-group > button:first-of-type,
+  .retouch-segment-group > button:last-of-type {
+    border-radius: 7px;
+  }
+
+  .retouch-submit-button {
+    min-height: 2.55rem;
+  }
 }

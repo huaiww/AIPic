@@ -22,9 +22,10 @@ interface SelectProps {
   options: Option[]
   disabled?: boolean
   className?: string
+  tone?: 'default' | 'dark'
 }
 
-export default function Select({ value, onChange, onReorder, options, disabled, className }: SelectProps) {
+export default function Select({ value, onChange, onReorder, options, disabled, className, tone = 'default' }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [menuMaxHeight, setMenuMaxHeight] = useState(DEFAULT_DROPDOWN_MAX_HEIGHT)
   const [placement, setPlacement] = useState<'bottom' | 'top'>('bottom')
@@ -46,6 +47,7 @@ export default function Select({ value, onChange, onReorder, options, disabled, 
   const triggerRef = useRef<HTMLDivElement>(null)
 
   const selectedOption = options.find((o) => o.value === value)
+  const isDarkTone = tone === 'dark'
 
   useEffect(() => {
     return () => {
@@ -156,16 +158,24 @@ export default function Select({ value, onChange, onReorder, options, disabled, 
         ref={triggerRef}
         onClick={handleToggle}
         className={`flex items-center justify-between gap-1 w-full cursor-pointer select-none ${className ?? ''} ${
-          disabled ? '!opacity-50 !cursor-not-allowed !bg-gray-100/50 dark:!bg-white/[0.05]' : ''
+          disabled
+            ? isDarkTone
+              ? '!opacity-50 !cursor-not-allowed !bg-white/[0.035] !text-zinc-500'
+              : '!opacity-50 !cursor-not-allowed !bg-gray-100/50 dark:!bg-white/[0.05]'
+            : ''
         }`}
       >
         <span className="truncate">{selectedOption?.label ?? value}</span>
-        <ChevronDownIcon className={`w-3.5 h-3.5 flex-shrink-0 text-gray-400 dark:text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDownIcon className={`w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200 ${isDarkTone ? 'text-zinc-500' : 'text-gray-400 dark:text-gray-500'} ${isOpen ? 'rotate-180' : ''}`} />
       </div>
 
       {isOpen && (
         <div
-          className={`absolute z-50 w-full overflow-hidden overflow-y-auto rounded-xl border border-gray-200/60 bg-white/95 py-1 shadow-[0_8px_30px_rgb(0,0,0,0.12)] ring-1 ring-black/5 backdrop-blur-xl dark:border-white/[0.08] dark:bg-gray-900/95 dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] dark:ring-white/10 custom-scrollbar ${
+          className={`absolute z-50 w-full overflow-hidden overflow-y-auto rounded-xl py-1 backdrop-blur-xl custom-scrollbar ${
+            isDarkTone
+              ? 'border border-white/[0.1] bg-zinc-950/95 shadow-[0_18px_45px_rgb(0,0,0,0.42)] ring-1 ring-cyan-300/[0.12]'
+              : 'border border-gray-200/60 bg-white/95 shadow-[0_8px_30px_rgb(0,0,0,0.12)] ring-1 ring-black/5 dark:border-white/[0.08] dark:bg-gray-900/95 dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] dark:ring-white/10'
+          } ${
             placement === 'top' ? 'bottom-full mb-1.5 animate-dropdown-up' : 'top-full mt-1.5 animate-dropdown-down'
           }`}
           style={{ maxHeight: menuMaxHeight }}
@@ -330,14 +340,14 @@ export default function Select({ value, onChange, onReorder, options, disabled, 
               }}
               className={`relative flex cursor-pointer items-center justify-between gap-2 px-3 py-2 text-xs transition-colors ${
                 draggedValue === option.value
-                  ? 'opacity-40 bg-gray-100 dark:bg-white/[0.04]'
+                  ? isDarkTone ? 'opacity-40 bg-white/[0.06]' : 'opacity-40 bg-gray-100 dark:bg-white/[0.04]'
                   : option.variant === 'action'
-                  ? 'font-semibold text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-500/10'
+                  ? isDarkTone ? 'font-semibold text-cyan-300 hover:bg-cyan-300/[0.1]' : 'font-semibold text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-500/10'
                   : option.variant === 'danger'
-                  ? 'font-semibold text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10'
+                  ? isDarkTone ? 'font-semibold text-red-300 hover:bg-red-500/10' : 'font-semibold text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10'
                   : option.value === value
-                  ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/[0.06]'
+                  ? isDarkTone ? 'bg-cyan-300/[0.12] text-cyan-200 font-medium' : 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium'
+                  : isDarkTone ? 'text-zinc-300 hover:bg-white/[0.06] hover:text-zinc-100' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/[0.06]'
               }`}
             >
               {dragOverValue === option.value && dragDropPosition === 'before' && draggedValue !== option.value && (
@@ -350,7 +360,7 @@ export default function Select({ value, onChange, onReorder, options, disabled, 
                 {option.draggable && (
                   <div
                     data-drag-handle
-                    className="flex cursor-grab active:cursor-grabbing items-center justify-center text-gray-400 opacity-60 transition-opacity hover:opacity-100 dark:text-gray-500"
+                    className={`flex cursor-grab active:cursor-grabbing items-center justify-center opacity-60 transition-opacity hover:opacity-100 ${isDarkTone ? 'text-zinc-500' : 'text-gray-400 dark:text-gray-500'}`}
                     style={{ touchAction: 'none' }}
                     title="拖拽排序"
                   >
@@ -376,8 +386,8 @@ export default function Select({ value, onChange, onReorder, options, disabled, 
                         setIsOpen(false)
                       }}
                       className={`rounded-md p-1.5 transition flex items-center justify-center ${action.variant === 'danger'
-                        ? 'text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10'
-                        : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.08] dark:hover:text-gray-200'}`}
+                        ? isDarkTone ? 'text-red-300 hover:bg-red-500/10' : 'text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10'
+                        : isDarkTone ? 'text-zinc-500 hover:bg-white/[0.08] hover:text-zinc-100' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.08] dark:hover:text-gray-200'}`}
                     >
                       {action.label === '编辑' ? (
                         <EditIcon className="w-3.5 h-3.5" />

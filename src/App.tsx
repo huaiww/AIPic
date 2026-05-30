@@ -2,12 +2,11 @@ import { useEffect } from 'react'
 import { initStore } from './store'
 import { useStore } from './store'
 import { buildSettingsFromUrlParams, clearUrlSettingParams, hasUrlSettingParams } from './lib/urlSettings'
-import { mergeImportedSettings } from './lib/apiProfiles'
+import { getActiveApiProfile, isOpenAICompatibleProvider, mergeImportedSettings, normalizeSettings } from './lib/apiProfiles'
 import { getCustomProviderConfigUrl, loadCustomProviderSettingsFromUrl } from './lib/customProviderConfigUrl'
 import { useDockerApiUrlMigrationNotice } from './hooks/useDockerApiUrlMigrationNotice'
 import Header from './components/Header'
-import SearchBar from './components/SearchBar'
-import TaskGrid from './components/TaskGrid'
+import RetouchWorkspace from './components/RetouchWorkspace'
 import AgentWorkspace from './components/AgentWorkspace'
 import InputBar from './components/InputBar'
 import DetailModal from './components/DetailModal'
@@ -76,14 +75,13 @@ export default function App() {
       {appMode === 'agent' ? (
         <AgentWorkspace />
       ) : (
-        <main data-home-main data-drag-select-surface className="pb-48">
-          <div className="safe-area-x max-w-7xl mx-auto">
-            <SearchBar />
-            <TaskGrid />
+        <main data-home-main data-drag-select-surface className="retouch-app-main">
+          <div className="retouch-app-grid">
+            <RetouchWorkspace />
           </div>
         </main>
       )}
-      <InputBar />
+      {appMode === 'agent' && <InputBar />}
       <DetailModal />
       <Lightbox />
       <SettingsModal />

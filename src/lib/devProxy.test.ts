@@ -31,6 +31,23 @@ describe('buildApiUrl', () => {
     ).toBe('/openai-proxy/responses')
   })
 
+  it('lets proxy targets keep their own API version prefix', () => {
+    expect(
+      buildApiUrl(
+        'https://sub2api.simplaj.top/',
+        'images/generations',
+        {
+          enabled: true,
+          prefix: '/api-proxy',
+          target: 'https://sub2api.simplaj.top/v1',
+          changeOrigin: true,
+          secure: true,
+        },
+        true,
+      ),
+    ).toBe('/api-proxy/images/generations')
+  })
+
   it('uses the configured API URL directly when API proxy is disabled', () => {
     expect(buildApiUrl('http://api.example.com/v1', 'responses', null, false)).toBe(
       'http://api.example.com/v1/responses',

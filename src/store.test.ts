@@ -444,6 +444,23 @@ describe('agent conversation persistence', () => {
     expect(serializedMigrated).not.toContain('legacy-base64')
     expect(serializedMigrated).toContain('image_generation_call')
   })
+
+  it('re-enables API proxy for saved default sub2api settings during migration', () => {
+    const migrated = migratePersistedState({
+      settings: {
+        ...DEFAULT_SETTINGS,
+        apiProxy: false,
+        profiles: DEFAULT_SETTINGS.profiles.map((profile) => ({
+          ...profile,
+          baseUrl: 'https://sub2api.simplaj.top/',
+          apiProxy: false,
+        })),
+      },
+    }) as { settings: typeof DEFAULT_SETTINGS }
+
+    expect(migrated.settings.apiProxy).toBe(DEFAULT_SETTINGS.apiProxy)
+    expect(migrated.settings.profiles[0].apiProxy).toBe(DEFAULT_SETTINGS.apiProxy)
+  })
 })
 
 describe('agent conversation creation', () => {

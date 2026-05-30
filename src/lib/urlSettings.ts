@@ -1,5 +1,5 @@
 import type { ApiMode, AppSettings } from '../types'
-import { normalizeBaseUrl } from './devProxy'
+import { isApiProxyAvailable, normalizeBaseUrl, readClientDevProxyConfig } from './devProxy'
 import {
   createDefaultOpenAIProfile,
   DEFAULT_IMAGES_MODEL,
@@ -100,11 +100,13 @@ export function buildSettingsFromUrlParams(currentSettings: Partial<AppSettings>
 
   if (hasLegacyOpenAIParams) {
     const profileApiMode = apiMode ?? 'images'
+    const apiProxyAvailable = isApiProxyAvailable(readClientDevProxyConfig())
     const profile = createDefaultOpenAIProfile({
       id: createUrlProfileId(new Set(settings.profiles.map((item) => item.id))),
       name: 'URL 参数配置',
       apiMode: profileApiMode,
       model: profileApiMode === 'responses' ? DEFAULT_RESPONSES_MODEL : DEFAULT_IMAGES_MODEL,
+      apiProxy: apiProxyAvailable,
     })
     if (apiUrlParam !== null) profile.baseUrl = normalizeBaseUrl(apiUrlParam.trim())
     if (apiKeyParam !== null) profile.apiKey = apiKeyParam.trim()

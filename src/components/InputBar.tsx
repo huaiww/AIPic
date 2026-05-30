@@ -398,6 +398,7 @@ export default function InputBar() {
   const settings = useStore((s) => s.settings)
   const setSettings = useStore((s) => s.setSettings)
   const reusedTaskApiProfileId = useStore((s) => s.reusedTaskApiProfileId)
+  const showSettings = useStore((s) => s.showSettings)
   const setShowSettings = useStore((s) => s.setShowSettings)
   const setLightboxImageId = useStore((s) => s.setLightboxImageId)
   const showToast = useStore((s) => s.showToast)
@@ -597,7 +598,7 @@ export default function InputBar() {
     ? maskDraft ? '遮罩编辑' : '生成图像'
     : '请先配置 API'
   const submitTooltipText = activeAgentIsRunning ? '停止生成' : '尚未完成 API 配置，请在右上角设置中进行'
-  const promptPlaceholder = '描述你想生成的图片，可输入 @ 来指定参考图...'
+  const promptPlaceholder = '写下修图指令：局部清理、生成式填充、色彩匹配、批量变体；输入 @ 引用参考图...'
   const submitCurrentMode = useCallback(() => {
     if (appMode === 'agent') {
       void submitAgentMessage()
@@ -628,25 +629,26 @@ export default function InputBar() {
   const effectiveNValue = Number.isNaN(nDraftValue) ? params.n : nDraftValue
   const streamConcurrentByN = activeProfile.provider === 'openai' && activeProfile.streamImages === true && !agentAutoImageCount && effectiveNValue > 1
   const nLimitHintText = agentAutoImageCount
-    ? 'Agent 模式下数量由模型根据提示词自动决定'
+    ? '助手模式下数量由模型根据提示词自动决定'
     : isFalProvider
     ? `fal.ai 最大请求数量为 ${outputImageLimit}`
     : `OpenAI 最大请求数量为 ${outputImageLimit}`
   const displaySize = isFalTextToImage && params.size === 'auto'
     ? DEFAULT_FAL_IMAGE_SIZE
     : normalizeImageSize(params.size) || DEFAULT_PARAMS.size
+  const displaySizeLabel = displaySize === 'auto' ? '自动' : displaySize
 
   const qualityOptions = isFalProvider
     ? [
-        { label: 'low', value: 'low' },
-        { label: 'medium', value: 'medium' },
-        { label: 'high', value: 'high' },
+        { label: '低', value: 'low' },
+        { label: '标准', value: 'medium' },
+        { label: '高', value: 'high' },
       ]
     : [
-        { label: 'auto', value: 'auto' },
-        { label: 'low', value: 'low' },
-        { label: 'medium', value: 'medium' },
-        { label: 'high', value: 'high' },
+        { label: '自动', value: 'auto' },
+        { label: '低', value: 'low' },
+        { label: '标准', value: 'medium' },
+        { label: '高', value: 'high' },
       ]
   const atImageLimit = inputImages.length >= API_MAX_IMAGES
   const uploadImageTooltipText = atImageLimit ? `参考图数量已达上限（${API_MAX_IMAGES} 张），无法继续添加` : '上传图片'
@@ -1396,7 +1398,9 @@ export default function InputBar() {
     }
   }, [])
 
-  const selectClass = 'px-3 py-1.5 rounded-xl border border-gray-200/60 dark:border-white/[0.08] bg-white/50 dark:bg-white/[0.03] hover:bg-white dark:hover:bg-white/[0.06] text-xs transition-all duration-200 shadow-sm'
+  const selectClass = 'px-3 py-1.5 rounded-xl border border-white/[0.1] bg-white/[0.045] hover:bg-white/[0.08] text-xs text-zinc-100 transition-all duration-200 shadow-sm'
+  const disabledParamClass = 'px-3 py-1.5 rounded-xl border border-white/[0.08] bg-white/[0.035] text-xs text-zinc-500 opacity-50 cursor-not-allowed transition-all duration-200 shadow-sm'
+  const enabledParamClass = 'bg-white/[0.045] text-zinc-100 hover:bg-white/[0.08]'
 
   const getTouchDropIndex = (touch: React.Touch) => {
     const target = document
@@ -1748,14 +1752,14 @@ export default function InputBar() {
         onTouchCancel={sizeHint.hide}
         onClick={sizeHint.show}
       >
-        <span className="text-gray-400 dark:text-gray-500 ml-1">尺寸</span>
+        <span className="ml-1 text-zinc-500">尺寸</span>
         <button
           type="button"
           onClick={() => { dismissAllTooltips(); setShowSizePicker(true) }}
-          className="px-3 py-1.5 rounded-xl border border-gray-200/60 dark:border-white/[0.08] bg-white/50 dark:bg-white/[0.03] hover:bg-white dark:hover:bg-white/[0.06] focus:outline-none text-xs text-left transition-all duration-200 shadow-sm font-mono"
+          className="px-3 py-1.5 rounded-xl border border-white/[0.1] bg-white/[0.045] hover:bg-white/[0.08] focus:outline-none text-xs text-left text-zinc-100 transition-all duration-200 shadow-sm font-mono"
           title="选择尺寸"
         >
-          {displaySize}
+          {displaySizeLabel}
         </button>
         <ButtonTooltip
           visible={isFalTextToImage && sizeHint.visible}
@@ -1771,7 +1775,7 @@ export default function InputBar() {
         onTouchCancel={qualityHint.hide}
         onClick={qualityHint.show}
       >
-        <span className="text-gray-400 dark:text-gray-500 ml-1">质量</span>
+        <span className="ml-1 text-zinc-500">质量</span>
         <Select
           value={settings.codexCli ? 'auto' : isFalProvider && params.quality === 'auto' ? 'high' : params.quality}
           onChange={(val) => {
@@ -1779,9 +1783,8 @@ export default function InputBar() {
           }}
           options={qualityOptions}
           disabled={settings.codexCli}
-          className={settings.codexCli
-            ? 'px-3 py-1.5 rounded-xl border border-gray-200/60 dark:border-white/[0.08] bg-gray-100/50 dark:bg-white/[0.05] opacity-50 cursor-not-allowed text-xs transition-all duration-200 shadow-sm'
-            : selectClass}
+          tone="dark"
+          className={settings.codexCli ? disabledParamClass : selectClass}
         />
         <ButtonTooltip
           visible={(settings.codexCli || isFalProvider) && qualityHint.visible}
@@ -1789,7 +1792,7 @@ export default function InputBar() {
         />
       </label>
       <label className="flex flex-col gap-0.5">
-        <span className="text-gray-400 dark:text-gray-500 ml-1">格式</span>
+        <span className="ml-1 text-zinc-500">格式</span>
         <Select
           value={params.output_format}
           onChange={(val) => setParams({ output_format: val as any })}
@@ -1798,6 +1801,7 @@ export default function InputBar() {
             { label: 'JPEG', value: 'jpeg' },
             { label: 'WebP', value: 'webp' },
           ]}
+          tone="dark"
           className={selectClass}
         />
       </label>
@@ -1810,7 +1814,7 @@ export default function InputBar() {
         onTouchCancel={compressionHint.hide}
         onClick={compressionHint.show}
       >
-        <span className="text-gray-400 dark:text-gray-500 ml-1">压缩率</span>
+        <span className="ml-1 text-zinc-500">压缩率</span>
         <input
           value={outputCompressionInput}
           onChange={(e) => setOutputCompressionInput(e.target.value)}
@@ -1820,10 +1824,10 @@ export default function InputBar() {
           min={0}
           max={100}
           placeholder="0-100"
-          className={`px-3 py-1.5 rounded-xl border border-gray-200/60 dark:border-white/[0.08] focus:outline-none text-xs transition-all duration-200 shadow-sm ${
+          className={`px-3 py-1.5 rounded-xl border border-white/[0.1] focus:outline-none text-xs transition-all duration-200 shadow-sm ${
             compressionDisabled
-              ? 'bg-gray-100/50 dark:bg-white/[0.05] opacity-50 cursor-not-allowed'
-              : 'bg-white/50 dark:bg-white/[0.03]'
+              ? 'bg-white/[0.035] text-zinc-500 opacity-50 cursor-not-allowed'
+              : enabledParamClass
             }`}
         />
         <ButtonTooltip
@@ -1840,20 +1844,19 @@ export default function InputBar() {
         onTouchCancel={moderationHint.hide}
         onClick={moderationHint.show}
       >
-        <span className="text-gray-400 dark:text-gray-500 ml-1">审核</span>
+        <span className="ml-1 text-zinc-500">审核</span>
         <Select
           value={moderationDisabled ? 'auto' : params.moderation}
           onChange={(val) => {
             if (!moderationDisabled) setParams({ moderation: val as any })
           }}
           options={[
-            { label: 'auto', value: 'auto' },
-            { label: 'low', value: 'low' },
+            { label: '自动', value: 'auto' },
+            { label: '低', value: 'low' },
           ]}
           disabled={moderationDisabled}
-          className={moderationDisabled
-            ? 'px-3 py-1.5 rounded-xl border border-gray-200/60 dark:border-white/[0.08] bg-gray-100/50 dark:bg-white/[0.05] opacity-50 cursor-not-allowed text-xs transition-all duration-200 shadow-sm'
-            : selectClass}
+          tone="dark"
+          className={moderationDisabled ? disabledParamClass : selectClass}
         />
         <ButtonTooltip
           visible={moderationDisabled && moderationHint.visible}
@@ -1872,7 +1875,7 @@ export default function InputBar() {
         }}
         onClick={showAgentNHint}
       >
-        <span className="text-gray-400 dark:text-gray-500 ml-1">数量</span>
+        <span className="ml-1 text-zinc-500">数量</span>
         <input
           value={nInput}
           onChange={(e) => handleNInputChange(e.target.value)}
@@ -1895,10 +1898,10 @@ export default function InputBar() {
           type={agentAutoImageCount ? 'text' : 'number'}
           min={agentAutoImageCount ? undefined : 1}
           max={agentAutoImageCount ? undefined : outputImageLimit}
-          className={`px-3 py-1.5 rounded-xl border border-gray-200/60 dark:border-white/[0.08] focus:outline-none text-xs transition-all duration-200 shadow-sm ${
+          className={`px-3 py-1.5 rounded-xl border border-white/[0.1] focus:outline-none text-xs transition-all duration-200 shadow-sm ${
             agentAutoImageCount
-              ? 'bg-gray-100/50 dark:bg-white/[0.05] opacity-50 cursor-not-allowed'
-              : 'bg-white/50 dark:bg-white/[0.03]'
+              ? 'bg-white/[0.035] text-zinc-500 opacity-50 cursor-not-allowed'
+              : enabledParamClass
           }`}
         />
         <ButtonTooltip visible={nLimitHint.visible} text={nLimitHintText} />
@@ -1952,7 +1955,7 @@ export default function InputBar() {
         />
       )}
 
-      <div data-input-bar className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-30 w-full max-w-4xl px-3 sm:px-4 transition-all duration-300">
+      <div data-input-bar className={`z-30 w-full px-3 sm:px-4 transition-all duration-300 ${showSettings ? 'hidden pointer-events-none' : ''} ${appMode === 'gallery' ? 'retouch-input-dock safe-area-x' : 'fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 max-w-4xl'}`}>
         {selectedTaskIds.length > 0 && (
           <div className="flex justify-center mb-3">
             <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-lg rounded-full flex items-center p-1 border border-gray-200/50 dark:border-white/10 pointer-events-auto">
@@ -2021,7 +2024,7 @@ export default function InputBar() {
             </div>
           </div>
         )}
-        <div ref={cardRef} className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-2xl border border-white/50 dark:border-white/[0.08] shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] rounded-2xl sm:rounded-3xl p-3 sm:p-4 ring-1 ring-black/5 dark:ring-white/10">
+        <div ref={cardRef} className="bg-zinc-950/92 text-zinc-100 backdrop-blur-2xl border border-cyan-300/[0.14] shadow-[0_22px_60px_rgb(0,0,0,0.46)] rounded-2xl p-3 sm:p-4 ring-1 ring-white/10">
           {/* 移动端拖动条 */}
           <div
             ref={handleRef}
@@ -2131,7 +2134,7 @@ export default function InputBar() {
                 syncMentionTagSelection(el)
               }}
               aria-label={promptPlaceholder}
-              className="col-start-1 row-start-1 min-h-[42px] w-full overflow-hidden ios-rounded-scroll-fix whitespace-pre-wrap break-words rounded-2xl border border-gray-200/60 bg-white/50 pl-4 pr-10 py-3 text-sm leading-relaxed shadow-sm outline-none transition-[border-color,box-shadow] duration-200 focus:ring-1 focus:ring-blue-300/40 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-100 dark:focus:ring-blue-500/30"
+              className="col-start-1 row-start-1 min-h-[42px] w-full overflow-hidden ios-rounded-scroll-fix whitespace-pre-wrap break-words rounded-xl border border-white/[0.1] bg-white/[0.045] pl-4 pr-10 py-3 text-sm leading-relaxed text-zinc-100 shadow-sm outline-none transition-[border-color,box-shadow] duration-200 focus:border-cyan-300/50 focus:ring-1 focus:ring-cyan-400/25"
             />
             {prompt.length === 0 && (
               <div className="prompt-placeholder col-start-1 row-start-1 pointer-events-none pl-4 pr-10 py-3 text-sm leading-relaxed text-gray-400 dark:text-gray-500">
@@ -2193,7 +2196,7 @@ export default function InputBar() {
                         ? 'bg-red-500 text-white hover:bg-red-600'
                         : !hasSubmitApiConfig
                         ? 'bg-gray-300 dark:bg-white/[0.06] text-white cursor-pointer'
-                        : 'bg-blue-500 text-white hover:bg-blue-600 disabled:bg-gray-300 dark:disabled:bg-white/[0.04] disabled:opacity-50 disabled:cursor-not-allowed'
+                        : 'bg-cyan-500 text-zinc-950 hover:bg-cyan-300 disabled:bg-gray-300 dark:disabled:bg-white/[0.04] disabled:opacity-50 disabled:cursor-not-allowed'
                     }`}
                     aria-label={submitButtonAriaLabel}
                   >
@@ -2302,7 +2305,7 @@ export default function InputBar() {
                         ? 'bg-red-500 text-white hover:bg-red-600'
                         : !hasSubmitApiConfig
                         ? 'bg-gray-300 dark:bg-white/[0.06] text-white cursor-pointer'
-                        : 'bg-blue-500 text-white hover:bg-blue-600 disabled:bg-gray-300 dark:disabled:bg-white/[0.04] disabled:opacity-50 disabled:cursor-not-allowed'
+                        : 'bg-cyan-500 text-zinc-950 hover:bg-cyan-300 disabled:bg-gray-300 dark:disabled:bg-white/[0.04] disabled:opacity-50 disabled:cursor-not-allowed'
                     }`}
                   >
                     {activeAgentIsRunning ? (
@@ -2314,7 +2317,7 @@ export default function InputBar() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                       </svg>
                     )}
-                    {activeAgentIsRunning ? '停止生成' : maskDraft ? '遮罩编辑' : '生成图像'}
+                    {activeAgentIsRunning ? '停止生成' : maskDraft ? '遮罩编辑' : '提交修图'}
                   </button>
                 </div>
               </div>

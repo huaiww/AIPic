@@ -46,6 +46,7 @@ import { collectAgentRoundOutputImageSlots, extractAgentReferenceIds, getAgentCu
 import { IMAGE_FETCH_CORS_HINT } from './lib/imageApiShared'
 import { getFalErrorMessage, getFalQueuedImageResult } from './lib/falAiImageApi'
 import { getCustomQueuedImageResult } from './lib/openaiCompatibleImageApi'
+import { isApiProxyAvailable } from './lib/devProxy'
 import { validateMaskMatchesImage } from './lib/canvasImage'
 import { orderInputImagesForMask } from './lib/mask'
 import { getChangedParams, normalizeParamsForSettings } from './lib/paramCompatibility'
@@ -553,8 +554,24 @@ export function migratePersistedState(persistedState: unknown): unknown {
   if (!isRecord(persistedState)) return persistedState
   return {
     ...persistedState,
+    settings: migrateDefaultApiProxySettings(persistedState.settings),
     agentConversations: stripPersistedAgentConversations(persistedState.agentConversations),
   }
+}
+
+function migrateDefaultApiProxySettings(settings: unknown): unknown {
+  const normalized = normalizeSettings(settings)
+  const defaultBaseUrl = DEFAULT_SETTINGS.baseUrl.trim().replace(/\/+$/, '')
+  const profiles = normalized.profiles.map((profile) => {
+    if (profile.provider !== 'openai') return profile
+    if (profile.baseUrl.trim().replace(/\/+$/, '') !== defaultBaseUrl) return profile
+    return { ...profile, apiProxy: DEFAULT_SETTINGS.apiProxy }
+  })
+
+  return normalizeSettings({
+    ...normalized,
+    profiles,
+  })
 }
 
 function createAgentConversation(now = Date.now()): AgentConversation {
@@ -632,7 +649,7 @@ function mergePersistedState(persistedState: unknown, currentState: AppState): A
   if (!persistedState || typeof persistedState !== 'object') return currentState
 
   const persisted = persistedState as Partial<AppState>
-  const settings = normalizeSettings(persisted.settings ?? currentState.settings)
+  const settings = normalizeSettings(migrateDefaultApiProxySettings(persisted.settings ?? currentState.settings))
   const hasPersistedAgentConversations = Array.isArray(persisted.agentConversations)
   if (hasPersistedAgentConversations && normalizeAgentConversations(persisted.agentConversations).length > 0) {
     agentConversationMigrationPending = true
@@ -1460,7 +1477,7 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'gpt-image-playground',
-      version: 2,
+      version: 3,
       migrate: (persistedState) => migratePersistedState(persistedState),
       partialize: getPersistedState,
       merge: mergePersistedState,
@@ -1651,18 +1668,26 @@ export function getTaskApiProfile(settings: AppSettings, task: TaskRecord): ApiP
 
 function createSettingsForApiProfile(settings: AppSettings, profile: ApiProfile): AppSettings {
   const normalized = normalizeSettings(settings)
+  const requestProfile = getApiProfileForRequest(profile)
   return normalizeSettings({
     ...normalized,
-    baseUrl: profile.baseUrl,
-    apiKey: profile.apiKey,
-    model: profile.model,
-    timeout: profile.timeout,
-    apiMode: profile.apiMode,
-    codexCli: profile.codexCli,
-    apiProxy: profile.apiProxy,
-    profiles: normalized.profiles.map((item) => item.id === profile.id ? profile : item),
-    activeProfileId: profile.id,
+    baseUrl: requestProfile.baseUrl,
+    apiKey: requestProfile.apiKey,
+    model: requestProfile.model,
+    timeout: requestProfile.timeout,
+    apiMode: requestProfile.apiMode,
+    codexCli: requestProfile.codexCli,
+    apiProxy: requestProfile.apiProxy,
+    profiles: normalized.profiles.map((item) => item.id === requestProfile.id ? requestProfile : item),
+    activeProfileId: requestProfile.id,
   })
+}
+
+function getApiProfileForRequest(profile: ApiProfile): ApiProfile {
+  if (profile.provider !== 'openai' || profile.apiProxy || !isApiProxyAvailable()) return profile
+  const defaultBaseUrl = DEFAULT_SETTINGS.baseUrl.trim().replace(/\/+$/, '')
+  if (profile.baseUrl.trim().replace(/\/+$/, '') !== defaultBaseUrl) return profile
+  return { ...profile, apiProxy: true }
 }
 
 function getReusedTaskApiProfile(settings: AppSettings, profileId: string | null): ApiProfile | null {
@@ -1704,7 +1729,7 @@ function getApiRequestNetworkErrorHint(
 
   if (elapsedSeconds <= 15) {
     if (usesApiProxy) {
-      return '提示：请求立即失败，请检查 API 代理服务是否正常运行。'
+      return '提示：请求已走本地 API 代理但立即失败，请检查本地代理是否仍在运行、API Key 是否有效，或上游 API 服务是否可用。'
     }
     const unsupportedApiHint = profile?.provider === 'openai'
       ? `\n· API 不支持 ${getApiModeApiName(profile.apiMode)}`
@@ -2086,6 +2111,7 @@ export async function submitTask(options: { allowFullMask?: boolean; useCurrentA
   const normalizedSettings = normalizeSettings(settings)
   let activeProfile = getActiveApiProfile(settings)
   let requestSettings = createSettingsForApiProfile(normalizedSettings, activeProfile)
+  activeProfile = getActiveApiProfile(requestSettings)
   if (normalizedSettings.reuseTaskApiProfileTemporarily && (reusedTaskApiProfileId || reusedTaskApiProfileMissing)) {
     const reusedProfile = getReusedTaskApiProfile(normalizedSettings, reusedTaskApiProfileId)
     if (!reusedProfile) {
@@ -2104,7 +2130,7 @@ export async function submitTask(options: { allowFullMask?: boolean; useCurrentA
         return
       }
     } else {
-      activeProfile = reusedProfile
+      activeProfile = getApiProfileForRequest(reusedProfile)
       requestSettings = createSettingsForApiProfile(normalizedSettings, reusedProfile)
     }
   }
@@ -3788,7 +3814,7 @@ async function executeTask(taskId: string) {
     })
     return
   }
-  const activeProfile = taskProfile ?? getActiveApiProfile(settings)
+  const activeProfile = getApiProfileForRequest(taskProfile ?? getActiveApiProfile(settings))
   const requestSettings = createSettingsForApiProfile(settings, activeProfile)
   const taskProvider = task.apiProvider ?? activeProfile.provider
   let falRequestInfo: { requestId: string; endpoint: string } | null = task.falRequestId && task.falEndpoint
