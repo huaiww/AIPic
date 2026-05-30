@@ -353,8 +353,6 @@ export default function SettingsModal() {
   const activeProfileApiProxyEligible = isProfileApiProxyEligible(draft, activeProfile)
   const activeCustomProviderAsync = isAsyncCustomProvider(activeCustomProvider)
   const apiProxyChecked = activeProfileApiProxyEligible && (apiProxyLocked || activeProfile.apiProxy)
-  const apiProxyEnabled = apiProxyAvailable && activeProfileApiProxyEligible && apiProxyChecked
-  const apiUrlLockedByProxy = apiProxyLocked && apiProxyEnabled
   const defaultProviderOrder = ['openai', 'fal', ...draft.customProviders.map(p => p.id)]
   const providerOrder = draft.providerOrder || defaultProviderOrder
 
@@ -1382,9 +1380,8 @@ export default function SettingsModal() {
                     onChange={(e) => updateActiveProfile(getBaseUrlPatch(e.target.value))}
                     onBlur={(e) => commitActiveProfilePatch(getBaseUrlPatch(e.target.value))}
                     type="text"
-                    disabled={apiUrlLockedByProxy}
                     placeholder={activeProfile.provider === 'fal' ? DEFAULT_FAL_BASE_URL : DEFAULT_SETTINGS.baseUrl}
-                    className={`retouch-settings-api-input w-full rounded-xl border px-3 py-2.5 font-mono text-sm font-semibold shadow-sm outline-none transition focus:ring-2 ${apiUrlLockedByProxy ? 'retouch-settings-disabled-input cursor-not-allowed' : ''}`}
+                    className="retouch-settings-api-input w-full rounded-xl border px-3 py-2.5 font-mono text-sm font-semibold shadow-sm outline-none transition focus:ring-2"
                   />
                 </label>
               )}

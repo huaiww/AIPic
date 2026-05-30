@@ -34,6 +34,20 @@ export interface CallApiResult {
   rawImageUrls?: string[]
 }
 
+export class ApiResponseError extends Error {
+  status: number
+  statusText: string
+  rawResponsePayload?: string
+
+  constructor(message: string, response: Response, rawResponsePayload?: string) {
+    super(message)
+    this.name = 'ApiResponseError'
+    this.status = response.status
+    this.statusText = response.statusText
+    this.rawResponsePayload = rawResponsePayload
+  }
+}
+
 export function isHttpUrl(value: unknown): value is string {
   return typeof value === 'string' && /^https?:\/\//i.test(value)
 }
@@ -144,15 +158,28 @@ export async function fetchImageUrlAsDataUrl(url: string, fallbackMime: string, 
   return blobToDataUrl(blob, fallbackMime)
 }
 
+function getMessageFromErrorJson(errJson: unknown): string | null {
+  if (!errJson || typeof errJson !== 'object') return null
+  const record = errJson as Record<string, unknown>
+  const error = record.error
+  if (error && typeof error === 'object' && !Array.isArray(error)) {
+    const message = (error as Record<string, unknown>).message
+    if (typeof message === 'string' && message.trim()) return message
+  }
+  if (typeof record.detail === 'string' && record.detail.trim()) return record.detail
+  if (Array.isArray(record.detail) && record.detail.length) {
+    return record.detail.map((item: unknown) => typeof item === 'string' ? item : JSON.stringify(item)).join('\n')
+  }
+  if (typeof record.error === 'string' && record.error.trim()) return record.error
+  if (typeof record.message === 'string' && record.message.trim()) return record.message
+  return null
+}
+
 export async function getApiErrorMessage(response: Response): Promise<string> {
   let errorMsg = `HTTP ${response.status}`
   try {
     const errJson = await response.json()
-    if (errJson.error?.message) errorMsg = errJson.error.message
-    else if (typeof errJson.detail === 'string') errorMsg = errJson.detail
-    else if (Array.isArray(errJson.detail)) errorMsg = errJson.detail.map((item: unknown) => typeof item === 'string' ? item : JSON.stringify(item)).join('\n')
-    else if (typeof errJson.error === 'string') errorMsg = errJson.error
-    else if (errJson.message) errorMsg = errJson.message
+    errorMsg = getMessageFromErrorJson(errJson) ?? errorMsg
   } catch {
     try {
       errorMsg = await response.text()
@@ -161,6 +188,34 @@ export async function getApiErrorMessage(response: Response): Promise<string> {
     }
   }
   return errorMsg
+}
+
+export async function createApiResponseError(response: Response): Promise<ApiResponseError> {
+  let errorMsg = `HTTP ${response.status}`
+  let rawResponsePayload: string | undefined
+  try {
+    const contentType = response.headers.get('content-type')?.toLowerCase() ?? ''
+    const bodyText = await response.text()
+    if (bodyText) rawResponsePayload = bodyText
+    if (bodyText && contentType.includes('application/json')) {
+      try {
+        const errJson = JSON.parse(bodyText)
+        errorMsg = getMessageFromErrorJson(errJson) ?? errorMsg
+      } catch {
+        errorMsg = bodyText
+      }
+    } else if (bodyText.trim()) {
+      errorMsg = bodyText
+    }
+  } catch {
+    /* ignore */
+  }
+
+  if (response.status === 502 && errorMsg === `HTTP ${response.status}`) {
+    errorMsg = '上游接口返回 502，可能是中转站余额/渠道/模型不可用，或大尺寸图片生成超时。'
+  }
+
+  return new ApiResponseError(errorMsg, response, rawResponsePayload)
 }
 
 export function pickActualParams(source: unknown): Partial<TaskParams> {

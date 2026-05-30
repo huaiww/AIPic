@@ -1,6 +1,6 @@
 import { DEFAULT_AGENT_MAX_TOOL_ROUNDS, DEFAULT_STREAM_PARTIAL_IMAGES, type ApiProfile, type AppSettings, type ResponsesApiResponse, type ResponsesOutputItem, type TaskParams } from '../types'
-import { buildApiUrl, readClientDevProxyConfig, shouldUseApiProxy } from './devProxy'
-import { getApiErrorMessage, MIME_MAP, normalizeBase64Image, pickActualParams } from './imageApiShared'
+import { buildApiUrl, createApiProxyHeaders, readClientDevProxyConfig, shouldUseApiProxy } from './devProxy'
+import { createApiResponseError, getApiErrorMessage, MIME_MAP, normalizeBase64Image, pickActualParams } from './imageApiShared'
 
 export interface AgentApiMessage {
   role: 'user' | 'assistant'
@@ -75,10 +75,11 @@ const AGENT_TITLE_INSTRUCTIONS = [
 
 const AGENT_TITLE_MAX_LENGTH = 28
 
-function createHeaders(profile: ApiProfile): Record<string, string> {
+function createHeaders(profile: ApiProfile, useApiProxy = false): Record<string, string> {
   return {
     Authorization: `Bearer ${profile.apiKey}`,
     'Content-Type': 'application/json',
+    ...createApiProxyHeaders(profile.baseUrl, useApiProxy),
   }
 }
 
@@ -637,14 +638,14 @@ export async function callAgentResponsesApi(opts: {
 
     const response = await fetch(buildApiUrl(profile.baseUrl, 'responses', proxyConfig, useApiProxy), {
       method: 'POST',
-      headers: createHeaders(profile),
+      headers: createHeaders(profile, useApiProxy),
       cache: 'no-store',
       body: JSON.stringify(body),
       signal: controller.signal,
     })
 
     if (!response.ok) {
-      throw new Error(await getApiErrorMessage(response))
+      throw await createApiResponseError(response)
     }
 
     if (profile.streamImages && isEventStreamResponse(response)) {
@@ -692,7 +693,7 @@ export async function callAgentConversationTitleApi(opts: {
 
     const response = await fetch(buildApiUrl(profile.baseUrl, 'responses', proxyConfig, useApiProxy), {
       method: 'POST',
-      headers: createHeaders(profile),
+      headers: createHeaders(profile, useApiProxy),
       cache: 'no-store',
       body: JSON.stringify({
         model: profile.model || settings.model,
@@ -704,7 +705,7 @@ export async function callAgentConversationTitleApi(opts: {
     })
 
     if (!response.ok) {
-      throw new Error(await getApiErrorMessage(response))
+      throw await createApiResponseError(response)
     }
 
     const payload = await response.json() as ResponsesApiResponse
@@ -809,7 +810,7 @@ export async function callBatchImageSingle(opts: {
 
     const response = await fetch(buildApiUrl(profile.baseUrl, 'responses', proxyConfig, useApiProxy), {
       method: 'POST',
-      headers: createHeaders(profile),
+      headers: createHeaders(profile, useApiProxy),
       cache: 'no-store',
       body: JSON.stringify(body),
       signal: controller.signal,

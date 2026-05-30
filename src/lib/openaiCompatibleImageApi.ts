@@ -1,13 +1,13 @@
 import { DEFAULT_STREAM_PARTIAL_IMAGES, type ApiProfile, type CustomProviderDefinition, type CustomProviderPollMapping, type CustomProviderResultMapping, type CustomProviderSubmitMapping, type ImageApiResponse, type ImageResponseItem, type ResponsesApiResponse, type ResponsesOutputItem, type TaskParams } from '../types'
 import { dataUrlToBlob, imageDataUrlToPngBlob, maskDataUrlToPngBlob } from './canvasImage'
-import { buildApiUrl, readClientDevProxyConfig, shouldUseApiProxy } from './devProxy'
+import { buildApiUrl, createApiProxyHeaders, readClientDevProxyConfig, shouldUseApiProxy } from './devProxy'
 import {
   assertImageInputPayloadSize,
   assertMaskEditFileSize,
   type CallApiOptions,
   type CallApiResult,
+  createApiResponseError,
   fetchImageUrlAsDataUrl,
-  getApiErrorMessage,
   getDataUrlDecodedByteSize,
   getDataUrlEncodedByteSize,
   isDataUrl,
@@ -83,6 +83,13 @@ function normalizeImageApiPayload(value: unknown): ImageApiResponse {
 function createRequestHeaders(profile: ApiProfile): Record<string, string> {
   return {
     Authorization: `Bearer ${profile.apiKey}`,
+  }
+}
+
+function createProxiedRequestHeaders(profile: ApiProfile, useApiProxy: boolean): Record<string, string> {
+  return {
+    ...createRequestHeaders(profile),
+    ...createApiProxyHeaders(profile.baseUrl, useApiProxy),
   }
 }
 
@@ -556,7 +563,7 @@ async function callImagesApiSingle(opts: CallApiOptions, profile: ApiProfile, cu
   const mime = MIME_MAP[params.output_format] || 'image/png'
   const proxyConfig = readClientDevProxyConfig()
   const useApiProxy = shouldUseApiProxy(profile.apiProxy, proxyConfig)
-  const requestHeaders = createRequestHeaders(profile)
+  const requestHeaders = createProxiedRequestHeaders(profile, useApiProxy)
   const paths = createOpenAICompatiblePaths(customProvider)
 
   const controller = new AbortController()
@@ -666,7 +673,7 @@ async function callImagesApiSingle(opts: CallApiOptions, profile: ApiProfile, cu
     }
 
     if (!response.ok) {
-      throw new Error(await getApiErrorMessage(response))
+      throw await createApiResponseError(response)
     }
 
     if (profile.streamImages && isEventStreamResponse(response)) {
@@ -871,7 +878,7 @@ async function submitCustomRequest(mapping: CustomProviderSubmitMapping, opts: C
     signal: controller.signal,
   })
 
-  if (!response.ok) throw new Error(await getApiErrorMessage(response))
+  if (!response.ok) throw await createApiResponseError(response)
   return response.json()
 }
 
@@ -907,7 +914,7 @@ async function pollCustomTaskResult(
 
       if (!taskResponse.ok) {
         if (isRetryablePollingStatus(taskResponse.status)) continue
-        throw new Error(await getApiErrorMessage(taskResponse))
+        throw await createApiResponseError(taskResponse)
       }
 
       taskPayload = await taskResponse.json()
@@ -1026,7 +1033,7 @@ async function callResponsesImageApiSingle(opts: CallApiOptions, profile: ApiPro
   const mime = MIME_MAP[params.output_format] || 'image/png'
   const proxyConfig = readClientDevProxyConfig()
   const useApiProxy = shouldUseApiProxy(profile.apiProxy, proxyConfig)
-  const requestHeaders = createRequestHeaders(profile)
+  const requestHeaders = createProxiedRequestHeaders(profile, useApiProxy)
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), profile.timeout * 1000)
 
@@ -1062,7 +1069,7 @@ async function callResponsesImageApiSingle(opts: CallApiOptions, profile: ApiPro
     })
 
     if (!response.ok) {
-      throw new Error(await getApiErrorMessage(response))
+      throw await createApiResponseError(response)
     }
 
     if (profile.streamImages && isEventStreamResponse(response)) {

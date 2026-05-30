@@ -1748,6 +1748,16 @@ function getApiRequestNetworkErrorHint(
   return `提示：请求等待较长时间后被断开，通常是反向代理或网关的超时限制，而非接口本身报错。可检查代理超时设置，或降低图片尺寸/质量后重试。${getTimeoutStreamingHint(profile)}`
 }
 
+function getApiResponseStatusHint(err: unknown, usesApiProxy: boolean): string | null {
+  if (!(err instanceof Error)) return null
+  const status = 'status' in err ? (err as { status?: unknown }).status : undefined
+  if (status !== 502) return null
+
+  return usesApiProxy
+    ? '提示：线上服务端转发已工作，但上游接口返回 502。常见原因是中转站余额不足、渠道故障、当前模型不支持 Image API、或 4K/多图/参考图任务生成时间过长。可先用 1K、1 张、快速质量测试，或切换模型/渠道后重试。'
+    : '提示：API 返回 502。常见原因是上游渠道故障、模型不支持当前接口，或高规格图片生成超时。可先降低尺寸/质量/数量后重试。'
+}
+
 function getRawErrorPayload(err: unknown): Pick<Partial<TaskRecord>, 'rawImageUrls' | 'rawResponsePayload'> {
   if (!(err instanceof Error)) return {}
 
@@ -3753,6 +3763,10 @@ async function executeAgentRound(
     if (networkErrorHint && !message.includes(IMAGE_FETCH_CORS_HINT)) {
       message += `\n${networkErrorHint}`
     }
+    const responseStatusHint = getApiResponseStatusHint(err, usesApiProxy)
+    if (responseStatusHint && !message.includes(responseStatusHint)) {
+      message += `\n${responseStatusHint}`
+    }
 
     updateAgentConversation(conversationId, (current) => {
       const failedRound = current.rounds.find((round) => round.id === roundId)
@@ -3991,6 +4005,10 @@ async function executeTask(taskId: string) {
       const networkErrorHint = getApiRequestNetworkErrorHint(err, latestTask.createdAt, usesApiProxy, hintProfile)
       if (networkErrorHint && !errorMessage.includes(IMAGE_FETCH_CORS_HINT)) {
         errorMessage += `\n${networkErrorHint}`
+      }
+      const responseStatusHint = getApiResponseStatusHint(err, usesApiProxy)
+      if (responseStatusHint && !errorMessage.includes(responseStatusHint)) {
+        errorMessage += `\n${responseStatusHint}`
       }
       updateTaskInStore(taskId, {
         status: 'error',

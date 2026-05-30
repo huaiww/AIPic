@@ -477,8 +477,42 @@ describe('callImageApi', () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       '/api-proxy/images/generations',
-      expect.objectContaining({ method: 'POST' }),
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          'x-aipic-upstream': 'http://api.example.com/v1',
+        }),
+      }),
     )
+  })
+
+  it('stores raw response payload on non-OK API responses', async () => {
+    vi.stubEnv('VITE_API_PROXY_AVAILABLE', 'true')
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
+      error: {
+        message: 'upstream failed',
+        request_id: 'req_123',
+      },
+    }), {
+      status: 502,
+      headers: { 'Content-Type': 'application/json' },
+    }))
+
+    await expect(callImageApi({
+      settings: {
+        ...DEFAULT_SETTINGS,
+        apiKey: 'test-key',
+        apiProxy: true,
+        baseUrl: 'https://api.example.com/v1',
+      },
+      prompt: 'prompt',
+      params: { ...DEFAULT_PARAMS },
+      inputImageDataUrls: [],
+    })).rejects.toMatchObject({
+      message: 'upstream failed',
+      status: 502,
+      rawResponsePayload: expect.stringContaining('req_123'),
+    })
   })
 
   it('uses the same-origin API proxy path when API proxy is enabled and base URL is empty', async () => {
@@ -504,7 +538,12 @@ describe('callImageApi', () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       '/api-proxy/images/generations',
-      expect.objectContaining({ method: 'POST' }),
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.not.objectContaining({
+          'x-aipic-upstream': expect.any(String),
+        }),
+      }),
     )
   })
 

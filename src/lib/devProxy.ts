@@ -9,6 +9,7 @@ export interface DevProxyConfig {
 }
 
 const DEFAULT_PROXY_PREFIX = '/api-proxy'
+export const API_PROXY_UPSTREAM_HEADER = 'x-aipic-upstream'
 
 export function normalizeBaseUrl(baseUrl: string): string {
   const trimmed = baseUrl.trim()
@@ -72,6 +73,13 @@ export function buildApiUrl(
     : ['v1', endpointPath].join('/')
 
   return normalizedBaseUrl ? `${normalizedBaseUrl}/${apiPath}` : `/${apiPath}`
+}
+
+export function createApiProxyHeaders(baseUrl: string, useApiProxy: boolean): Record<string, string> {
+  if (!useApiProxy) return {}
+
+  const normalizedBaseUrl = normalizeBaseUrl(baseUrl)
+  return normalizedBaseUrl ? { [API_PROXY_UPSTREAM_HEADER]: normalizedBaseUrl } : {}
 }
 
 export function resolveDevProxyConfig(input: unknown, isDev: boolean): DevProxyConfig | null {
