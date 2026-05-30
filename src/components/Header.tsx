@@ -22,15 +22,10 @@ export default function Header() {
       <header data-no-drag-select className={`safe-area-top fixed top-0 left-0 right-0 z-40 bg-zinc-950/90 backdrop-blur border-b border-white/[0.08] transition-transform duration-300 ease-in-out ${appMode === 'agent' && !agentMobileHeaderVisible ? '-translate-y-full sm:translate-y-0' : 'translate-y-0'}`}>
         <div className="safe-area-x safe-header-inner max-w-7xl mx-auto flex items-center justify-between relative">
           <div className="flex-1 min-w-0 pr-2 flex items-center gap-2">
-            <h1 className="inline-flex items-start relative mr-2">
-              <a
-                href="https://github.com/CookSleep/gpt_image_playground"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[17px] sm:text-lg font-bold tracking-tight text-zinc-100 hover:text-cyan-200 transition-colors"
-              >
+            <h1 className="inline-flex shrink-0 items-start relative mr-1">
+              <span className="text-[17px] sm:text-lg font-bold tracking-tight text-zinc-100">
                 AI 专业修图台
-              </a>
+              </span>
               {hasUpdate && latestRelease && (
                 <a
                   href={latestRelease.url}
@@ -44,6 +39,16 @@ export default function Header() {
                 </a>
               )}
             </h1>
+            <a
+              href="https://sub2api.simplaj.top/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-w-0 max-w-[min(48vw,28rem)] items-center gap-1.5 rounded-lg border border-cyan-300/25 bg-cyan-300/10 px-2.5 py-1.5 text-xs font-bold text-cyan-100 shadow-sm shadow-cyan-950/20 transition-colors hover:border-cyan-200/45 hover:bg-cyan-300/15 hover:text-white"
+              title="低价稳定中转站 https://sub2api.simplaj.top/"
+            >
+              <span className="min-w-0 truncate font-mono tracking-normal">https://sub2api.simplaj.top/</span>
+              <span className="hidden shrink-0 text-cyan-200 sm:inline">低价稳定中转站</span>
+            </a>
             {appMode === 'agent' && <div className="hidden sm:flex items-center gap-1 relative">
               <button
                 ref={historyButtonRef}
