@@ -95,7 +95,8 @@ export const onRequest: PagesFunction = async ({ request }) => {
   const responseHeaders = new Headers(upstreamResponse.headers)
   for (const header of hopByHopHeaders) responseHeaders.delete(header)
 
-  if (!upstreamResponse.ok && !responseHeaders.get('content-type')) {
+  const contentType = responseHeaders.get('content-type')?.toLowerCase() ?? ''
+  if (!upstreamResponse.ok && !contentType.includes('application/json')) {
     const text = await upstreamResponse.text()
     const headers = withCors(new Headers({ 'content-type': 'application/json; charset=utf-8' }))
     return new Response(JSON.stringify({
