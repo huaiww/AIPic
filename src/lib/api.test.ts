@@ -123,7 +123,7 @@ describe('callImageApi', () => {
     ])
   })
 
-  it('does not request Images API streaming by default', async () => {
+  it('requests Images API streaming by default', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
       data: [{ b64_json: 'aW1hZ2U=' }],
     }), {
@@ -133,6 +133,36 @@ describe('callImageApi', () => {
 
     await callImageApi({
       settings: { ...DEFAULT_SETTINGS, apiKey: 'test-key' },
+      prompt: 'prompt',
+      params: { ...DEFAULT_PARAMS },
+      inputImageDataUrls: [],
+    })
+
+    const [, init] = fetchMock.mock.calls[0]
+    const body = JSON.parse(String((init as RequestInit).body))
+    expect(body.stream).toBe(true)
+    expect(body.partial_images).toBe(3)
+  })
+
+  it('preserves explicit Images API streaming opt-out', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
+      data: [{ b64_json: 'aW1hZ2U=' }],
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    }))
+
+    await callImageApi({
+      settings: {
+        ...DEFAULT_SETTINGS,
+        apiKey: 'test-key',
+        streamImages: false,
+        profiles: DEFAULT_SETTINGS.profiles.map((profile) => ({
+          ...profile,
+          apiKey: 'test-key',
+          streamImages: false,
+        })),
+      },
       prompt: 'prompt',
       params: { ...DEFAULT_PARAMS },
       inputImageDataUrls: [],
@@ -512,6 +542,37 @@ describe('callImageApi', () => {
       message: 'upstream failed',
       status: 502,
       rawResponsePayload: expect.stringContaining('req_123'),
+    })
+  })
+
+  it('explains wrapped upstream 524 responses', async () => {
+    vi.stubEnv('VITE_API_PROXY_AVAILABLE', 'true')
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
+      error: {
+        message: '上游接口返回 HTTP 524',
+        upstream: 'https://sub2api.simplaj.top',
+        status: 524,
+        body: '<title>524: A timeout occurred</title>',
+      },
+    }), {
+      status: 524,
+      headers: { 'Content-Type': 'application/json' },
+    }))
+
+    await expect(callImageApi({
+      settings: {
+        ...DEFAULT_SETTINGS,
+        apiKey: 'test-key',
+        apiProxy: true,
+        baseUrl: 'https://sub2api.simplaj.top/',
+      },
+      prompt: 'prompt',
+      params: { ...DEFAULT_PARAMS },
+      inputImageDataUrls: [],
+    })).rejects.toMatchObject({
+      message: expect.stringContaining('sub2api 源站生成超时'),
+      status: 524,
+      rawResponsePayload: expect.stringContaining('A timeout occurred'),
     })
   })
 

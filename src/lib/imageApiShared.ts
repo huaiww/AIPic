@@ -213,6 +213,8 @@ export async function createApiResponseError(response: Response): Promise<ApiRes
 
   if (response.status === 502 && errorMsg === `HTTP ${response.status}`) {
     errorMsg = '上游接口返回 502，可能是中转站余额/渠道/模型不可用，或大尺寸图片生成超时。'
+  } else if (response.status === 524 && (errorMsg === `HTTP ${response.status}` || /上游接口返回\s*HTTP\s*524/i.test(errorMsg))) {
+    errorMsg = '上游接口返回 524：sub2api 源站生成超时。通常是图片任务超过 Cloudflare 等网关等待时间，可降低尺寸/质量/数量，开启流式传输，或稍后/更换渠道重试。'
   }
 
   return new ApiResponseError(errorMsg, response, rawResponsePayload)

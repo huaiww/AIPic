@@ -16,7 +16,7 @@ import type {
   ResponsesApiResponse,
   ResponsesOutputItem,
 } from './types'
-import { DEFAULT_AGENT_MAX_TOOL_ROUNDS, DEFAULT_PARAMS } from './types'
+import { DEFAULT_AGENT_MAX_TOOL_ROUNDS, DEFAULT_PARAMS, DEFAULT_STREAM_PARTIAL_IMAGES } from './types'
 import { DEFAULT_SETTINGS, getActiveApiProfile, getCustomProviderDefinition, mergeImportedSettings, normalizeSettings, validateApiProfile } from './lib/apiProfiles'
 import { dismissAllTooltips } from './lib/tooltipDismiss'
 import { remapImageMentionsForOrder, replaceImageMentionsForApi } from './lib/promptImageMentions'
@@ -565,7 +565,12 @@ function migrateDefaultApiProxySettings(settings: unknown): unknown {
   const profiles = normalized.profiles.map((profile) => {
     if (profile.provider !== 'openai') return profile
     if (normalizeBaseUrl(profile.baseUrl) !== defaultBaseUrl) return profile
-    return { ...profile, apiProxy: DEFAULT_SETTINGS.apiProxy }
+    return {
+      ...profile,
+      apiProxy: DEFAULT_SETTINGS.apiProxy,
+      streamImages: true,
+      streamPartialImages: Math.max(profile.streamPartialImages ?? DEFAULT_SETTINGS.streamPartialImages ?? 0, DEFAULT_STREAM_PARTIAL_IMAGES),
+    }
   })
 
   return normalizeSettings({
@@ -1678,16 +1683,24 @@ function createSettingsForApiProfile(settings: AppSettings, profile: ApiProfile)
     apiMode: requestProfile.apiMode,
     codexCli: requestProfile.codexCli,
     apiProxy: requestProfile.apiProxy,
+    streamImages: requestProfile.streamImages,
+    streamPartialImages: requestProfile.streamPartialImages,
     profiles: normalized.profiles.map((item) => item.id === requestProfile.id ? requestProfile : item),
     activeProfileId: requestProfile.id,
   })
 }
 
 function getApiProfileForRequest(profile: ApiProfile): ApiProfile {
-  if (profile.provider !== 'openai' || profile.apiProxy || !isApiProxyAvailable()) return profile
+  if (profile.provider !== 'openai') return profile
   const defaultBaseUrl = normalizeBaseUrl(DEFAULT_SETTINGS.baseUrl)
   if (normalizeBaseUrl(profile.baseUrl) !== defaultBaseUrl) return profile
-  return { ...profile, apiProxy: true }
+  const patch: Partial<ApiProfile> = {}
+  if (!profile.apiProxy && isApiProxyAvailable()) patch.apiProxy = true
+  if (profile.apiMode === 'images') {
+    patch.streamImages = true
+    patch.streamPartialImages = Math.max(profile.streamPartialImages ?? DEFAULT_SETTINGS.streamPartialImages ?? 0, DEFAULT_STREAM_PARTIAL_IMAGES)
+  }
+  return Object.keys(patch).length ? { ...profile, ...patch } : profile
 }
 
 function getReusedTaskApiProfile(settings: AppSettings, profileId: string | null): ApiProfile | null {
@@ -1748,9 +1761,18 @@ function getApiRequestNetworkErrorHint(
   return `提示：请求等待较长时间后被断开，通常是反向代理或网关的超时限制，而非接口本身报错。可检查代理超时设置，或降低图片尺寸/质量后重试。${getTimeoutStreamingHint(profile)}`
 }
 
-function getApiResponseStatusHint(err: unknown, usesApiProxy: boolean): string | null {
+function getApiResponseStatusHint(
+  err: unknown,
+  usesApiProxy: boolean,
+  profile?: Pick<ApiProfile, 'provider' | 'streamImages' | 'streamPartialImages'> | null,
+): string | null {
   if (!(err instanceof Error)) return null
   const status = 'status' in err ? (err as { status?: unknown }).status : undefined
+  if (status === 524) {
+    return usesApiProxy
+      ? `提示：请求已到达 sub2api，但 sub2api 源站在 Cloudflare 限制内没有返回结果（524）。这不是前端或 Pages 代理故障。请先用 1K、1 张、快速质量测试，开启流式传输/中间图，或换模型/渠道；4K、精修、多图、带参考图更容易触发。${getTimeoutStreamingHint(profile)}`
+      : `提示：API 返回 524，说明上游源站长时间没有响应。请先降低尺寸/质量/数量，开启流式传输/中间图，或更换直连地址、模型、渠道后重试。${getTimeoutStreamingHint(profile)}`
+  }
   if (status !== 502) return null
 
   return usesApiProxy
@@ -3763,7 +3785,7 @@ async function executeAgentRound(
     if (networkErrorHint && !message.includes(IMAGE_FETCH_CORS_HINT)) {
       message += `\n${networkErrorHint}`
     }
-    const responseStatusHint = getApiResponseStatusHint(err, usesApiProxy)
+    const responseStatusHint = getApiResponseStatusHint(err, usesApiProxy, activeProfile)
     if (responseStatusHint && !message.includes(responseStatusHint)) {
       message += `\n${responseStatusHint}`
     }
@@ -4006,7 +4028,7 @@ async function executeTask(taskId: string) {
       if (networkErrorHint && !errorMessage.includes(IMAGE_FETCH_CORS_HINT)) {
         errorMessage += `\n${networkErrorHint}`
       }
-      const responseStatusHint = getApiResponseStatusHint(err, usesApiProxy)
+      const responseStatusHint = getApiResponseStatusHint(err, usesApiProxy, hintProfile)
       if (responseStatusHint && !errorMessage.includes(responseStatusHint)) {
         errorMessage += `\n${responseStatusHint}`
       }
