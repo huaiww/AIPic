@@ -461,6 +461,22 @@ describe('agent conversation persistence', () => {
     expect(migrated.settings.apiProxy).toBe(DEFAULT_SETTINGS.apiProxy)
     expect(migrated.settings.profiles[0].apiProxy).toBe(DEFAULT_SETTINGS.apiProxy)
   })
+
+  it('re-enables API proxy for saved default sub2api /v1 settings during migration', () => {
+    const migrated = migratePersistedState({
+      settings: {
+        ...DEFAULT_SETTINGS,
+        apiProxy: false,
+        profiles: DEFAULT_SETTINGS.profiles.map((profile) => ({
+          ...profile,
+          baseUrl: 'https://sub2api.simplaj.top/v1',
+          apiProxy: false,
+        })),
+      },
+    }) as { settings: typeof DEFAULT_SETTINGS }
+
+    expect(migrated.settings.profiles[0].apiProxy).toBe(DEFAULT_SETTINGS.apiProxy)
+  })
 })
 
 describe('agent conversation creation', () => {

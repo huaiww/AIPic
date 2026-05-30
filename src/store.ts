@@ -46,7 +46,7 @@ import { collectAgentRoundOutputImageSlots, extractAgentReferenceIds, getAgentCu
 import { IMAGE_FETCH_CORS_HINT } from './lib/imageApiShared'
 import { getFalErrorMessage, getFalQueuedImageResult } from './lib/falAiImageApi'
 import { getCustomQueuedImageResult } from './lib/openaiCompatibleImageApi'
-import { isApiProxyAvailable } from './lib/devProxy'
+import { isApiProxyAvailable, normalizeBaseUrl } from './lib/devProxy'
 import { validateMaskMatchesImage } from './lib/canvasImage'
 import { orderInputImagesForMask } from './lib/mask'
 import { getChangedParams, normalizeParamsForSettings } from './lib/paramCompatibility'
@@ -561,10 +561,10 @@ export function migratePersistedState(persistedState: unknown): unknown {
 
 function migrateDefaultApiProxySettings(settings: unknown): unknown {
   const normalized = normalizeSettings(settings)
-  const defaultBaseUrl = DEFAULT_SETTINGS.baseUrl.trim().replace(/\/+$/, '')
+  const defaultBaseUrl = normalizeBaseUrl(DEFAULT_SETTINGS.baseUrl)
   const profiles = normalized.profiles.map((profile) => {
     if (profile.provider !== 'openai') return profile
-    if (profile.baseUrl.trim().replace(/\/+$/, '') !== defaultBaseUrl) return profile
+    if (normalizeBaseUrl(profile.baseUrl) !== defaultBaseUrl) return profile
     return { ...profile, apiProxy: DEFAULT_SETTINGS.apiProxy }
   })
 
@@ -1685,8 +1685,8 @@ function createSettingsForApiProfile(settings: AppSettings, profile: ApiProfile)
 
 function getApiProfileForRequest(profile: ApiProfile): ApiProfile {
   if (profile.provider !== 'openai' || profile.apiProxy || !isApiProxyAvailable()) return profile
-  const defaultBaseUrl = DEFAULT_SETTINGS.baseUrl.trim().replace(/\/+$/, '')
-  if (profile.baseUrl.trim().replace(/\/+$/, '') !== defaultBaseUrl) return profile
+  const defaultBaseUrl = normalizeBaseUrl(DEFAULT_SETTINGS.baseUrl)
+  if (normalizeBaseUrl(profile.baseUrl) !== defaultBaseUrl) return profile
   return { ...profile, apiProxy: true }
 }
 
