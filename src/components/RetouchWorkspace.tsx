@@ -27,6 +27,7 @@ type RetouchStrengthId = 'light' | 'standard' | 'strong' | 'max'
 type RetouchTargetId = 'auto' | 'female' | 'male' | 'child' | 'product'
 type RetouchPreviewMode = 'empty' | 'current' | 'history'
 type RetouchOutputSizeId = 'auto' | SizeTier
+type RetouchGenerationMode = 'text' | 'edit'
 
 type RetouchTemplate = {
   id: RetouchTemplateId
@@ -907,12 +908,29 @@ function HistoryThumb({ task }: { task: { outputImages: string[]; inputImageIds:
   )
 }
 
-function RetouchPreviewEmpty({ hasHistorySelection }: { hasHistorySelection: boolean }) {
+function RetouchPreviewEmpty({
+  hasHistorySelection,
+  generationMode,
+}: {
+  hasHistorySelection: boolean
+  generationMode: RetouchGenerationMode
+}) {
+  const title = hasHistorySelection
+    ? '历史记录缺少可预览图片'
+    : generationMode === 'text'
+      ? '输入画面描述开始生成'
+      : '上传参考图开始修图'
+  const description = hasHistorySelection
+    ? '请选择另一条历史，或重新上传参考图。'
+    : generationMode === 'text'
+      ? '文生图模式不会引用参考图，适合从空白画布创建新图。'
+      : '清空参考图后不会继续显示上一次修图结果。'
+
   return (
     <div className="retouch-preview-empty">
       <PhotoIcon className="h-6 w-6" />
-      <strong>{hasHistorySelection ? '历史记录缺少可预览图片' : '上传参考图开始修图'}</strong>
-      <span>{hasHistorySelection ? '请选择另一条历史，或重新上传参考图。' : '清空参考图后不会继续显示上一次修图结果。'}</span>
+      <strong>{title}</strong>
+      <span>{description}</span>
     </div>
   )
 }
@@ -992,11 +1010,13 @@ export default function RetouchWorkspace() {
   const [selectedGroupName, setSelectedGroupName] = useState<string | null>('肤色瑕疵')
   const [selectedStrengthId, setSelectedStrengthId] = useState<RetouchStrengthId>('standard')
   const [selectedTargetId, setSelectedTargetId] = useState<RetouchTargetId>('auto')
+  const [generationMode, setGenerationMode] = useState<RetouchGenerationMode>('edit')
   const [selectedHistoryTaskId, setSelectedHistoryTaskId] = useState<string | null>(null)
   const [compareEnabled, setCompareEnabled] = useState(false)
   const [comparePosition, setComparePosition] = useState(50)
   const [compareDragging, setCompareDragging] = useState(false)
   const [inputSessionStartedAt, setInputSessionStartedAt] = useState(0)
+  const [textSessionStartedAt, setTextSessionStartedAt] = useState(0)
   const inputSignatureRef = useRef<string | null>(null)
   const activeProfile = useMemo(() => getActiveApiProfile(settings), [settings])
   const apiIssue = validateApiProfile(activeProfile)
@@ -1007,6 +1027,8 @@ export default function RetouchWorkspace() {
   const currentInputIds = useMemo(() => inputImages.map((image) => image.id), [inputImages])
   const currentInputSignature = currentInputIds.join('|')
   const hasCurrentInput = currentInputIds.length > 0
+  const isTextToImageMode = generationMode === 'text'
+  const isImageEditMode = generationMode === 'edit'
   const latestTaskForCurrentInput = hasCurrentInput
     ? retouchTasks.find((task) =>
       task.createdAt >= inputSessionStartedAt &&
@@ -1022,16 +1044,36 @@ export default function RetouchWorkspace() {
         sameImageIds(task.inputImageIds, currentInputIds),
       ) ?? null
       : null
+  const latestTextTask = isTextToImageMode
+    ? retouchTasks.find((task) => task.createdAt >= textSessionStartedAt && task.inputImageIds.length === 0) ?? null
+    : null
+  const latestTextTaskWithOutput = latestTextTask?.outputImages.length
+    ? latestTextTask
+    : isTextToImageMode
+      ? retouchTasks.find((task) =>
+        task.createdAt >= textSessionStartedAt &&
+        task.inputImageIds.length === 0 &&
+        task.outputImages.length > 0,
+      ) ?? null
+      : null
   const selectedHistoryTask = selectedHistoryTaskId ? retouchTasks.find((task) => task.id === selectedHistoryTaskId) ?? null : null
-  const previewMode: RetouchPreviewMode = selectedHistoryTask ? 'history' : hasCurrentInput ? 'current' : 'empty'
+  const previewMode: RetouchPreviewMode = selectedHistoryTask
+    ? 'history'
+    : isTextToImageMode
+      ? latestTextTask || latestTextTaskWithOutput ? 'current' : 'empty'
+      : hasCurrentInput
+        ? 'current'
+        : 'empty'
   const visibleTask: TaskRecord | null = previewMode === 'history'
     ? selectedHistoryTask
     : previewMode === 'current'
-      ? latestTaskWithOutputForCurrentInput ?? latestTaskForCurrentInput
+      ? isTextToImageMode
+        ? latestTextTaskWithOutput ?? latestTextTask
+        : latestTaskWithOutputForCurrentInput ?? latestTaskForCurrentInput
       : null
   const visibleOutputTask: TaskRecord | null = visibleTask?.outputImages.length ? visibleTask : null
-  const inputPreview = previewMode === 'current' ? inputImages[0]?.dataUrl ?? null : null
-  const beforeImageId = visibleOutputTask?.inputImageIds[0] ?? (previewMode === 'current' ? currentInputIds[0] : null)
+  const inputPreview = previewMode === 'current' && isImageEditMode ? inputImages[0]?.dataUrl ?? null : null
+  const beforeImageId = visibleOutputTask?.inputImageIds[0] ?? (previewMode === 'current' && isImageEditMode ? currentInputIds[0] : null)
   const outputImageId = visibleOutputTask?.outputImages[0] ?? null
   const beforeImageSrc = useCachedImageSource(beforeImageId, inputPreview)
   const outputImageSrc = useCachedImageSource(outputImageId)
@@ -1053,10 +1095,10 @@ export default function RetouchWorkspace() {
   const canCompare = Boolean(visibleOutputTask?.inputImageIds[0] && visibleOutputTask?.outputImages[0] && beforeImageSrc && outputImageSrc)
   const canUsePreviewZoom = hasPreviewImage && !(compareEnabled && canCompare)
   const previewTitle = outputImageSrc
-    ? previewMode === 'history' ? '历史结果' : '修图结果'
-    : previewMode === 'history' ? '历史原图' : previewMode === 'current' ? '输入参考' : '空白画布'
+    ? previewMode === 'history' ? '历史结果' : isTextToImageMode ? '生成结果' : '修图结果'
+    : previewMode === 'history' ? '历史原图' : previewMode === 'current' ? isTextToImageMode ? '生成中' : '输入参考' : '空白画布'
   const previewEmptyHasHistorySelection = previewMode === 'history'
-  const currentStatusTask = previewMode === 'current' ? latestTaskForCurrentInput : null
+  const currentStatusTask = previewMode === 'current' ? isTextToImageMode ? latestTextTask : latestTaskForCurrentInput : null
   const runningCount = retouchTasks.filter((task) => task.status === 'running').length
   const doneCount = retouchTasks.filter((task) => task.status === 'done').length
   const selectedTemplates = selectedTemplateIds
@@ -1065,6 +1107,7 @@ export default function RetouchWorkspace() {
   const selectedTemplateSummary = selectedTemplates.length
     ? selectedTemplates.map((template) => template.title).join(' + ')
     : '自定义修图'
+  const currentWorkSummary = isTextToImageMode ? '文生图创作' : selectedTemplateSummary
   const selectedCategory = retouchCategories.find((category) => category.id === selectedCategoryId) ?? retouchCategories[0]
   const selectedStrength = strengthOptions.find((option) => option.id === selectedStrengthId) ?? strengthOptions[1]
   const selectedTarget = targetOptions.find((option) => option.id === selectedTargetId) ?? targetOptions[0]
@@ -1314,10 +1357,28 @@ export default function RetouchWorkspace() {
     setPreviewPanDragging(false)
   }
 
+  const switchGenerationMode = (mode: RetouchGenerationMode) => {
+    if (mode === generationMode) return
+    setGenerationMode(mode)
+    setSelectedHistoryTaskId(null)
+    setCompareEnabled(false)
+    if (mode === 'text') {
+      setTextSessionStartedAt(Date.now())
+      showToast(inputImages.length ? '已切换为文生图，提交时不会引用参考图' : '已切换为文生图', 'success')
+    } else {
+      showToast('已切换为图生图修图', 'success')
+    }
+  }
+
   const handleFiles = async (files: FileList | File[]) => {
     try {
       const count = await loadFiles(files)
-      if (count > 0) showToast(`已添加 ${count} 张参考图`, 'success')
+      if (count > 0) {
+        setGenerationMode('edit')
+        setSelectedHistoryTaskId(null)
+        setCompareEnabled(false)
+        showToast(`已添加 ${count} 张参考图，已切换为图生图修图`, 'success')
+      }
     } catch (error) {
       showToast(`上传失败：${error instanceof Error ? error.message : String(error)}`, 'error')
     }
@@ -1329,10 +1390,21 @@ export default function RetouchWorkspace() {
       setShowSettings(true, 'api')
       return
     }
-    void submitTask()
+    if (isImageEditMode && inputImages.length === 0) {
+      showToast('图生图修图需要先上传参考图，或切换到文生图', 'info')
+      return
+    }
+    setSelectedHistoryTaskId(null)
+    setCompareEnabled(false)
+    if (isTextToImageMode && textSessionStartedAt === 0) setTextSessionStartedAt(Date.now())
+    void submitTask({ textToImage: isTextToImageMode })
   }
 
   const handleMaskEdit = () => {
+    if (isTextToImageMode) {
+      showToast('文生图不需要遮罩；切换到图生图修图后再涂抹区域', 'info')
+      return
+    }
     const targetId = maskDraft?.targetImageId ?? inputImages[0]?.id
     if (!targetId) {
       showToast('请先上传一张参考图，再涂抹指定区域', 'info')
@@ -1349,6 +1421,16 @@ export default function RetouchWorkspace() {
     setLightboxImageId(visibleTask.outputImages[0], visibleTask.outputImages)
   }
 
+  const promptFieldLabel = isTextToImageMode ? '画面描述' : '修图要求'
+  const promptPlaceholder = isTextToImageMode
+    ? '直接描述要生成的画面、主体、风格、镜头、光线、构图和比例。例：商业棚拍质感的护肤品海报，白色背景，柔和侧光，干净高级。'
+    : '直接描述要修哪里、强度、必须保留什么。例：保留人物身份和镜框结构，去掉皮肤瑕疵，肤色更干净自然。'
+  const submitLabel = apiIssue ? '配置 API' : isTextToImageMode ? '提交生成' : maskDraft ? '提交局部修图' : '提交修图'
+  const historyTitle = isTextToImageMode ? '生成历史' : '修图历史'
+  const currentPromptFallback = isTextToImageMode
+    ? '写清楚主体、场景、风格、构图、色彩、比例和不想出现的内容。'
+    : '先选择一个修图预设，或者在右侧输入框直接写修图要求。'
+
   return (
     <section data-no-drag-select className="retouch-workspace safe-area-x">
       <div className="retouch-studio-shell">
@@ -1358,11 +1440,11 @@ export default function RetouchWorkspace() {
             <div className="retouch-studio-status-row">
               <span className={apiIssue ? 'is-warning' : 'is-ready'}>{apiIssue ? `API 未完成：${apiIssue}` : 'API 已就绪'}</span>
               <span>{activeProfile.model || '未设置模型'}</span>
-              <span>{inputImages.length} 张输入图</span>
+              <span>{isTextToImageMode ? '文生图模式' : `${inputImages.length} 张输入图`}</span>
               <span>{runningCount ? `${runningCount} 个任务生成中` : `${doneCount} 个结果`}</span>
             </div>
           </div>
-          <div className="retouch-studio-hint">选择预设后在右侧确认要求并提交</div>
+          <div className="retouch-studio-hint">{isTextToImageMode ? '输入画面描述后直接生成' : '选择预设后在右侧确认要求并提交'}</div>
         </header>
 
         <div className="retouch-studio-body">
@@ -1650,7 +1732,7 @@ export default function RetouchWorkspace() {
                     />
                   </div>
                 ) : (
-                  <RetouchPreviewEmpty hasHistorySelection={previewEmptyHasHistorySelection} />
+                  <RetouchPreviewEmpty hasHistorySelection={previewEmptyHasHistorySelection} generationMode={generationMode} />
                 )}
               </div>
               {currentStatusTask?.status === 'running' && <div className="retouch-running-badge">生成中</div>}
@@ -1674,13 +1756,35 @@ export default function RetouchWorkspace() {
           >
             <div className="retouch-section-heading">
               <span>主交互区</span>
-              <strong>{maskDraft ? '遮罩编辑' : params.n > 1 ? `${params.n} 张输出` : '单张输出'}</strong>
+              <strong>{isTextToImageMode ? '文生图' : maskDraft ? '遮罩编辑' : params.n > 1 ? `${params.n} 张输出` : '单张输出'}</strong>
             </div>
             <div className="retouch-side-submit">
+              <div className="retouch-segment-group retouch-mode-switch" aria-label="生成模式">
+                <span>模式</span>
+                <button
+                  type="button"
+                  className={isTextToImageMode ? 'is-active' : ''}
+                  onClick={() => switchGenerationMode('text')}
+                >
+                  <strong>文生图</strong>
+                  <small>纯文字</small>
+                </button>
+                <button
+                  type="button"
+                  className={isImageEditMode ? 'is-active' : ''}
+                  onClick={() => switchGenerationMode('edit')}
+                >
+                  <strong>图生图</strong>
+                  <small>参考图修图</small>
+                </button>
+              </div>
               <button type="button" className="retouch-upload-button" onClick={() => fileInputRef.current?.click()}>
                 <PhotoIcon className="h-4 w-4" />
-                <span>{inputImages.length ? `${inputImages.length} 张参考图` : '上传参考图'}</span>
+                <span>{inputImages.length ? `${inputImages.length} 张参考图` : isTextToImageMode ? '上传参考图并修图' : '上传参考图'}</span>
               </button>
+              {isTextToImageMode && inputImages.length > 0 && (
+                <div className="retouch-mode-note">当前为文生图，提交时不会引用这些参考图。</div>
+              )}
               {inputImages.length > 0 && (
                 <div className="retouch-thumb-row">
                   {inputImages.slice(0, 5).map((image, index) => (
@@ -1704,14 +1808,14 @@ export default function RetouchWorkspace() {
               )}
               <button type="button" className="retouch-mask-button" onClick={handleMaskEdit}>
                 <EditIcon className="h-4 w-4" />
-                <span>{maskDraft ? '继续涂抹遮罩' : '涂抹指定区域生成 mask'}</span>
+                <span>{isTextToImageMode ? '文生图无需 mask' : maskDraft ? '继续涂抹遮罩' : '涂抹指定区域生成 mask'}</span>
               </button>
               <label className="retouch-prompt-field">
-                <span>修图要求</span>
+                <span>{promptFieldLabel}</span>
                 <textarea
                   value={prompt}
                   onChange={(event) => setPrompt(event.target.value)}
-                  placeholder="直接描述要修哪里、强度、必须保留什么。例：保留人物身份和镜框结构，去掉皮肤瑕疵，肤色更干净自然。"
+                  placeholder={promptPlaceholder}
                   rows={5}
                 />
               </label>
@@ -1785,7 +1889,7 @@ export default function RetouchWorkspace() {
                 </div>
 
                 <button type="button" className="retouch-submit-button" onClick={handleSubmit}>
-                  {apiIssue ? '配置 API' : maskDraft ? '提交局部修图' : '提交修图'}
+                  {submitLabel}
                 </button>
               </div>
             </div>
@@ -1806,7 +1910,7 @@ export default function RetouchWorkspace() {
 
           <aside className="retouch-output-panel">
             <div className="retouch-section-heading">
-              <span>修图历史</span>
+              <span>{historyTitle}</span>
               <strong>{retouchTasks.length ? `${retouchTasks.length} 条` : '暂无'}</strong>
             </div>
             <div className="retouch-history-list">
@@ -1819,7 +1923,7 @@ export default function RetouchWorkspace() {
                     onClick={() => {
                       setCompareEnabled(false)
                       setSelectedHistoryTaskId(task.id)
-                      showToast(`已切换到 ${new Date(task.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} 的修图记录`, 'success')
+                      showToast(`已切换到 ${new Date(task.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} 的${task.inputImageIds.length ? '修图' : '生成'}记录`, 'success')
                     }}
                   >
                     <HistoryThumb task={task} />
@@ -1830,7 +1934,7 @@ export default function RetouchWorkspace() {
                   </button>
                 ))
               ) : (
-                <div className="retouch-empty-history">提交修图后自动记录历史</div>
+                <div className="retouch-empty-history">{isTextToImageMode ? '提交生成后自动记录历史' : '提交修图后自动记录历史'}</div>
               )}
             </div>
 
@@ -1839,8 +1943,8 @@ export default function RetouchWorkspace() {
               <strong>{params.n > 1 ? `${params.n} 张输出` : '单张输出'}</strong>
             </div>
             <div className="retouch-current-brief">
-              <strong>{selectedTemplateSummary}</strong>
-              <p>{prompt || '先选择一个修图预设，或者在右侧输入框直接写修图要求。'}</p>
+              <strong>{currentWorkSummary}</strong>
+              <p>{prompt || currentPromptFallback}</p>
             </div>
 
             <div className="retouch-section-heading">

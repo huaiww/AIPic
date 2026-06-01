@@ -209,6 +209,29 @@ describe('mask draft lifecycle in store actions', () => {
     expect(state.showToast).toHaveBeenCalledWith('任务已提交', 'success')
   })
 
+  it('submits text-to-image without attached references or mask', async () => {
+    useStore.setState({
+      inputImages: [imageA],
+      maskDraft: {
+        targetImageId: imageA.id,
+        maskDataUrl: 'data:image/png;base64,mask',
+        updatedAt: 1,
+      },
+      prompt: '生成一张商业棚拍海报',
+    })
+
+    await submitTask({ textToImage: true })
+
+    const state = useStore.getState()
+    expect(state.tasks[0]).toMatchObject({
+      inputImageIds: [],
+      maskImageId: null,
+      maskTargetImageId: null,
+      prompt: '生成一张商业棚拍海报',
+    })
+    expect(state.inputImages).toEqual([imageA])
+  })
+
   it('preserves selected image mentions when replacing a mask target with an equivalent image id', () => {
     const replacement = { id: 'image-a-replacement', dataUrl: imageA.dataUrl }
     const prompt = `参考 ${getSelectedImageMentionLabel(0)} 生成`

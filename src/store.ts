@@ -2136,7 +2136,7 @@ export async function initStore() {
 }
 
 /** 提交新任务 */
-export async function submitTask(options: { allowFullMask?: boolean; useCurrentApiProfileWhenReusedMissing?: boolean } = {}) {
+export async function submitTask(options: { allowFullMask?: boolean; useCurrentApiProfileWhenReusedMissing?: boolean; textToImage?: boolean } = {}) {
   const { settings, prompt, inputImages, maskDraft, params, reusedTaskApiProfileId, reusedTaskApiProfileName, reusedTaskApiProfileMissing, showToast, setConfirmDialog } =
     useStore.getState()
 
@@ -2178,14 +2178,16 @@ export async function submitTask(options: { allowFullMask?: boolean; useCurrentA
     return
   }
 
-  let orderedInputImages = inputImages
+  const sourceInputImages = options.textToImage ? [] : inputImages
+  const sourceMaskDraft = options.textToImage ? null : maskDraft
+  let orderedInputImages = sourceInputImages
   let maskImageId: string | null = null
   let maskTargetImageId: string | null = null
 
-  if (maskDraft) {
+  if (sourceMaskDraft) {
     try {
-      orderedInputImages = orderInputImagesForMask(inputImages, maskDraft.targetImageId)
-      const coverage = await validateMaskMatchesImage(maskDraft.maskDataUrl, orderedInputImages[0].dataUrl)
+      orderedInputImages = orderInputImagesForMask(sourceInputImages, sourceMaskDraft.targetImageId)
+      const coverage = await validateMaskMatchesImage(sourceMaskDraft.maskDataUrl, orderedInputImages[0].dataUrl)
       if (coverage === 'full' && !options.allowFullMask) {
         setConfirmDialog({
           title: '确认编辑整张图片？',
@@ -2193,16 +2195,16 @@ export async function submitTask(options: { allowFullMask?: boolean; useCurrentA
           confirmText: '继续提交',
           tone: 'warning',
           action: () => {
-            void submitTask({ allowFullMask: true })
+            void submitTask({ ...options, allowFullMask: true })
           },
         })
         return
       }
-      maskImageId = await storeImage(maskDraft.maskDataUrl, 'mask')
-      cacheImage(maskImageId, maskDraft.maskDataUrl)
-      maskTargetImageId = maskDraft.targetImageId
+      maskImageId = await storeImage(sourceMaskDraft.maskDataUrl, 'mask')
+      cacheImage(maskImageId, sourceMaskDraft.maskDataUrl)
+      maskTargetImageId = sourceMaskDraft.targetImageId
     } catch (err) {
-      if (!inputImages.some((img) => img.id === maskDraft.targetImageId)) {
+      if (!sourceInputImages.some((img) => img.id === sourceMaskDraft.targetImageId)) {
         useStore.getState().clearMaskDraft()
       }
       showToast(err instanceof Error ? err.message : String(err), 'error')
@@ -2249,7 +2251,7 @@ export async function submitTask(options: { allowFullMask?: boolean; useCurrentA
 
   if (settings.clearInputAfterSubmit) {
     useStore.getState().setPrompt('')
-    useStore.getState().clearInputImages()
+    if (!options.textToImage) useStore.getState().clearInputImages()
   }
   useStore.getState().setReusedTaskApiProfile(null)
 
