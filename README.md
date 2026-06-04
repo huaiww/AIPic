@@ -88,6 +88,116 @@ functions/api-proxy/[[path]].ts
 
 注意：代理只负责转发请求，不保存 API Key，不记录图片数据。
 
+## Docker 一键部署
+
+Docker 版本适合本地服务器、NAS、轻量云服务器或内网工作站部署。容器会用 Nginx 托管前端，并内置同源 API 代理：
+
+- 页面访问地址：`http://服务器IP:8080/`
+- 默认 API 地址：`https://sub2api.simplaj.top/`
+- 默认代理上游：`https://sub2api.simplaj.top/v1`
+- 浏览器只请求本机 `/api-proxy/`，由容器内 Nginx 转发到模型 API，减少 CORS 问题。
+
+### 方式一：Docker Compose
+
+克隆项目后，在项目目录执行：
+
+```bash
+docker compose up -d --build
+```
+
+启动后访问：
+
+```text
+http://127.0.0.1:8080/
+```
+
+如果部署在服务器上，把 `127.0.0.1` 换成服务器 IP 或域名。
+
+查看运行状态：
+
+```bash
+docker compose ps
+docker compose logs -f aipic
+```
+
+停止服务：
+
+```bash
+docker compose down
+```
+
+### 方式二：docker run
+
+构建镜像：
+
+```bash
+docker build -f deploy/Dockerfile -t aipic:local .
+```
+
+启动容器：
+
+```bash
+docker run -d \
+  --name aipic \
+  --restart unless-stopped \
+  -p 8080:80 \
+  -e DEFAULT_API_URL=https://sub2api.simplaj.top/ \
+  -e API_PROXY_URL=https://sub2api.simplaj.top/v1 \
+  -e ENABLE_API_PROXY=true \
+  -e LOCK_API_PROXY=true \
+  aipic:local
+```
+
+查看日志：
+
+```bash
+docker logs -f aipic
+```
+
+停止并删除容器：
+
+```bash
+docker rm -f aipic
+```
+
+### Docker 环境变量
+
+| 变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `AIPIC_PORT` | `8080` | Compose 暴露到宿主机的端口 |
+| `DEFAULT_API_URL` | `https://sub2api.simplaj.top/` | 前端 API 设置里显示的默认地址 |
+| `API_PROXY_URL` | `https://sub2api.simplaj.top/v1` | 容器内 Nginx 代理转发目标 |
+| `ENABLE_API_PROXY` | `true` | 是否启用 `/api-proxy/` 同源代理 |
+| `LOCK_API_PROXY` | `true` | 是否强制走代理，避免用户误关后触发 CORS |
+
+修改端口示例：
+
+```bash
+AIPIC_PORT=3000 docker compose up -d --build
+```
+
+切换到其他 OpenAI 兼容接口示例：
+
+```bash
+DEFAULT_API_URL=https://example.com/ \
+API_PROXY_URL=https://example.com/v1 \
+docker compose up -d --build
+```
+
+### Docker 使用流程
+
+1. 打开 `http://服务器IP:8080/`。
+2. 点击右上角 `API 设置`。
+3. 填入 API Key，模型 ID 默认可用 `gpt-image-2`。
+4. 保持代理开启，提交文生图或图生图任务。
+
+如果请求失败，优先检查：
+
+- `API_PROXY_URL` 是否带 `/v1`。
+- API Key 是否有效。
+- 上游是否支持 `/v1/images/generations` 和 `/v1/images/edits`。
+- 服务器是否能访问上游 API。
+
 ## Cloudflare Pages 部署
 
 项目已配置 Cloudflare Pages：
