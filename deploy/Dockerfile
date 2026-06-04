@@ -3,14 +3,16 @@ FROM --platform=$BUILDPLATFORM node:22-alpine AS build
 
 WORKDIR /app
 
+COPY package.json package-lock.json ./
+RUN npm ci
+
 ENV VITE_DEFAULT_API_URL=__VITE_DEFAULT_API_URL_PLACEHOLDER__
 ENV VITE_API_PROXY_AVAILABLE=__VITE_API_PROXY_AVAILABLE_PLACEHOLDER__
 ENV VITE_API_PROXY_LOCKED=__VITE_API_PROXY_LOCKED_PLACEHOLDER__
 ENV VITE_DOCKER_DEPLOYMENT=__VITE_DOCKER_DEPLOYMENT_PLACEHOLDER__
 ENV VITE_DOCKER_LEGACY_API_URL_USED=__VITE_DOCKER_LEGACY_API_URL_USED_PLACEHOLDER__
-
-COPY package.json package-lock.json ./
-RUN npm ci
+ENV VITE_PROMO_API_URL=__VITE_PROMO_API_URL_PLACEHOLDER__
+ENV VITE_PROMO_API_LABEL=__VITE_PROMO_API_LABEL_PLACEHOLDER__
 
 COPY . .
 RUN npm run build
@@ -24,6 +26,8 @@ ENV DEFAULT_API_URL=https://sub2api.simplaj.top/
 ENV API_PROXY_URL=https://sub2api.simplaj.top/v1
 ENV ENABLE_API_PROXY=true
 ENV LOCK_API_PROXY=true
+ENV PROMO_API_URL=https://sub2api.simplaj.top/
+ENV PROMO_API_LABEL=低价稳定中转站
 
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY deploy/nginx.conf /etc/nginx/templates/default.conf.template

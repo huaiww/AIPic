@@ -6,6 +6,8 @@
 
 推荐 API 中转：[https://sub2api.simplaj.top/](https://sub2api.simplaj.top/)
 
+顶部中转站入口可配置，默认指向上面的地址；私有部署时可以换成自己的中转站或购买页。
+
 ## 当前版本重点
 
 - 专业修图工作台：固定屏幕工作区，左侧功能预设，中间大画布预览，右侧主交互区和历史记录。
@@ -18,6 +20,7 @@
 - 修图历史：任务提交后自动记录历史，支持回看输出和任务状态。
 - 输出控制：支持 1 张 / 4 版、1K / 2K / 4K、快速 / 标准 / 精修、PNG / WebP / JPEG。
 - API 代理：Cloudflare Pages Function 内置 `/api-proxy/`，默认转发到 `https://sub2api.simplaj.top/v1`，用于减少浏览器跨域问题。
+- 可配置推广入口：顶部中转站 URL 和文案可通过环境变量修改，不再写死在界面组件里。
 
 ## 界面预览
 
@@ -71,6 +74,24 @@ https://sub2api.simplaj.top/
 https://simplaj-docs.pages.dev/
 ```
 
+### 顶部中转站入口配置
+
+默认顶部入口显示：
+
+```text
+https://sub2api.simplaj.top/ 低价稳定中转站
+```
+
+如果要换成自己的中转站、购买页或文档页，可以在构建时配置：
+
+```bash
+VITE_PROMO_API_URL=https://your-gateway.example.com/ \
+VITE_PROMO_API_LABEL=我的中转站 \
+npm run build
+```
+
+这只影响顶部宣传入口的跳转和显示文案，不会修改真实模型请求地址。真实请求地址仍由 `VITE_DEFAULT_API_URL`、页面 API 设置、`API_PROXY_URL` 或用户手动配置控制。
+
 ### Cloudflare Pages API 代理
 
 当前仓库包含 Pages Function：
@@ -83,6 +104,7 @@ functions/api-proxy/[[path]].ts
 
 - 前端请求 `/api-proxy/images/generations` 等路径。
 - Pages Function 默认转发到 `https://sub2api.simplaj.top/v1`。
+- 私有 Pages 部署可通过环境变量 `API_PROXY_URL=https://your-gateway.example.com/v1` 修改默认代理上游。
 - 请求头 `x-aipic-upstream` 可以覆盖上游地址，但只接受 HTTPS。
 - 代理返回 CORS 头，方便浏览器直接调用。
 
@@ -145,6 +167,8 @@ docker run -d \
   -e API_PROXY_URL=https://sub2api.simplaj.top/v1 \
   -e ENABLE_API_PROXY=true \
   -e LOCK_API_PROXY=true \
+  -e PROMO_API_URL=https://sub2api.simplaj.top/ \
+  -e PROMO_API_LABEL=低价稳定中转站 \
   aipic:local
 ```
 
@@ -169,6 +193,8 @@ docker rm -f aipic
 | `API_PROXY_URL` | `https://sub2api.simplaj.top/v1` | 容器内 Nginx 代理转发目标 |
 | `ENABLE_API_PROXY` | `true` | 是否启用 `/api-proxy/` 同源代理 |
 | `LOCK_API_PROXY` | `true` | 是否强制走代理，避免用户误关后触发 CORS |
+| `PROMO_API_URL` | `https://sub2api.simplaj.top/` | 顶部中转站入口跳转地址 |
+| `PROMO_API_LABEL` | `低价稳定中转站` | 顶部中转站入口显示文案 |
 
 修改端口示例：
 
@@ -181,6 +207,14 @@ AIPIC_PORT=3000 docker compose up -d --build
 ```bash
 DEFAULT_API_URL=https://example.com/ \
 API_PROXY_URL=https://example.com/v1 \
+docker compose up -d --build
+```
+
+只替换顶部中转站入口，不改模型请求接口：
+
+```bash
+PROMO_API_URL=https://your-gateway.example.com/ \
+PROMO_API_LABEL=我的中转站 \
 docker compose up -d --build
 ```
 

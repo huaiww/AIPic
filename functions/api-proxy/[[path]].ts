@@ -2,6 +2,11 @@ const UPSTREAM_BASE_URL = 'https://sub2api.simplaj.top/v1'
 const UPSTREAM_HEADER = 'x-aipic-upstream'
 const MAX_TEXT_BODY_CHARS = 8000
 
+interface Env {
+  API_PROXY_URL?: string
+  DEFAULT_API_URL?: string
+}
+
 const hopByHopHeaders = new Set([
   'connection',
   'keep-alive',
@@ -46,14 +51,20 @@ function normalizeBaseUrl(baseUrl: string) {
   }
 }
 
-function getUpstreamBaseUrl(request: Request) {
-  return normalizeBaseUrl(request.headers.get(UPSTREAM_HEADER) ?? '') || UPSTREAM_BASE_URL
+function getDefaultUpstreamBaseUrl(env: Env) {
+  return normalizeBaseUrl(env.API_PROXY_URL ?? '') ||
+    normalizeBaseUrl(env.DEFAULT_API_URL ?? '') ||
+    UPSTREAM_BASE_URL
 }
 
-function buildUpstreamUrl(request: Request) {
+function getUpstreamBaseUrl(request: Request, env: Env) {
+  return normalizeBaseUrl(request.headers.get(UPSTREAM_HEADER) ?? '') || getDefaultUpstreamBaseUrl(env)
+}
+
+function buildUpstreamUrl(request: Request, env: Env) {
   const url = new URL(request.url)
   const upstreamPath = url.pathname.replace(/^\/api-proxy\/?/, '')
-  const upstreamUrl = new URL(`${getUpstreamBaseUrl(request).replace(/\/+$/, '')}/${upstreamPath}`)
+  const upstreamUrl = new URL(`${getUpstreamBaseUrl(request, env).replace(/\/+$/, '')}/${upstreamPath}`)
   upstreamUrl.search = url.search
   return upstreamUrl
 }
@@ -67,12 +78,12 @@ function copyRequestHeaders(request: Request) {
   return headers
 }
 
-export const onRequest: PagesFunction = async ({ request }) => {
+export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: withCors(new Headers()) })
   }
 
-  const upstreamUrl = buildUpstreamUrl(request)
+  const upstreamUrl = buildUpstreamUrl(request, env)
   let upstreamResponse: Response
   try {
     upstreamResponse = await fetch(upstreamUrl, {
