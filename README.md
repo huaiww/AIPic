@@ -2,7 +2,7 @@
 
 面向专业修图师、设计师、电商视觉和摄影后期的 AI Native 修图工作台。项目基于 [CookSleep/gpt_image_playground](https://github.com/CookSleep/gpt_image_playground) 二次开发，保留图像生成、图生图、遮罩编辑、多 API 配置和历史管理能力，并重构为更适合专业修图工作流的中文界面。
 
-生产地址：[https://aipic-4zp.pages.dev/](https://aipic-4zp.pages.dev/)
+生产地址：[https://image.simplaj.top/](https://image.simplaj.top/)
 
 推荐 API 中转：[https://sub2api.simplaj.top/](https://sub2api.simplaj.top/)
 
@@ -258,7 +258,7 @@ npx wrangler pages deploy dist --project-name aipic --branch main
 部署后生产地址：
 
 ```text
-https://aipic-4zp.pages.dev/
+https://image.simplaj.top/
 ```
 
 如果需要确认账号权限：

@@ -1482,7 +1482,7 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'gpt-image-playground',
-      version: 4,
+      version: 5,
       migrate: (persistedState) => migratePersistedState(persistedState),
       partialize: getPersistedState,
       merge: mergePersistedState,

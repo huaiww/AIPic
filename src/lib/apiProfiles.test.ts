@@ -566,34 +566,34 @@ describe('custom providers', () => {
     expect(profile.model).toBe(DEFAULT_IMAGES_MODEL)
   })
 
-  it('disables streaming by default and preserves explicit partial image count', () => {
-    expect(createDefaultOpenAIProfile().streamImages).toBe(false)
+  it('enables streaming by default and preserves explicit partial image count', () => {
+    expect(createDefaultOpenAIProfile().streamImages).toBe(true)
     expect(createDefaultOpenAIProfile().streamPartialImages).toBe(3)
-    expect(DEFAULT_SETTINGS.streamImages).toBe(false)
+    expect(DEFAULT_SETTINGS.streamImages).toBe(true)
     expect(DEFAULT_SETTINGS.streamPartialImages).toBe(3)
-    expect(DEFAULT_SETTINGS.profiles[0].streamImages).toBe(false)
+    expect(DEFAULT_SETTINGS.profiles[0].streamImages).toBe(true)
     expect(DEFAULT_SETTINGS.profiles[0].streamPartialImages).toBe(3)
 
     const normalized = normalizeSettings({
       profiles: [
-        createDefaultOpenAIProfile({ streamImages: false, streamPartialImages: 3 }),
+        createDefaultOpenAIProfile({ streamPartialImages: 3 }),
       ],
     })
 
-    expect(normalized.streamImages).toBe(false)
+    expect(normalized.streamImages).toBe(true)
     expect(normalized.streamPartialImages).toBe(3)
-    expect(normalized.profiles[0].streamImages).toBe(false)
+    expect(normalized.profiles[0].streamImages).toBe(true)
     expect(normalized.profiles[0].streamPartialImages).toBe(3)
 
-    const explicitStreaming = normalizeSettings({
+    const explicitNonStreaming = normalizeSettings({
       profiles: [
-        createDefaultOpenAIProfile({ streamImages: true, streamPartialImages: 2 }),
+        createDefaultOpenAIProfile({ streamImages: false, streamPartialImages: 2 }),
       ],
     })
 
-    expect(explicitStreaming.streamImages).toBe(true)
-    expect(explicitStreaming.profiles[0].streamImages).toBe(true)
-    expect(explicitStreaming.profiles[0].streamPartialImages).toBe(2)
+    expect(explicitNonStreaming.streamImages).toBe(false)
+    expect(explicitNonStreaming.profiles[0].streamImages).toBe(false)
+    expect(explicitNonStreaming.profiles[0].streamPartialImages).toBe(2)
 
     const clamped = normalizeSettings({
       profiles: [
