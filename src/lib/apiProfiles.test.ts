@@ -566,12 +566,12 @@ describe('custom providers', () => {
     expect(profile.model).toBe(DEFAULT_IMAGES_MODEL)
   })
 
-  it('enables streaming by default and preserves explicit partial image count', () => {
-    expect(createDefaultOpenAIProfile().streamImages).toBe(true)
+  it('disables streaming by default and preserves explicit partial image count', () => {
+    expect(createDefaultOpenAIProfile().streamImages).toBe(false)
     expect(createDefaultOpenAIProfile().streamPartialImages).toBe(3)
-    expect(DEFAULT_SETTINGS.streamImages).toBe(true)
+    expect(DEFAULT_SETTINGS.streamImages).toBe(false)
     expect(DEFAULT_SETTINGS.streamPartialImages).toBe(3)
-    expect(DEFAULT_SETTINGS.profiles[0].streamImages).toBe(true)
+    expect(DEFAULT_SETTINGS.profiles[0].streamImages).toBe(false)
     expect(DEFAULT_SETTINGS.profiles[0].streamPartialImages).toBe(3)
 
     const normalized = normalizeSettings({
@@ -584,6 +584,16 @@ describe('custom providers', () => {
     expect(normalized.streamPartialImages).toBe(3)
     expect(normalized.profiles[0].streamImages).toBe(false)
     expect(normalized.profiles[0].streamPartialImages).toBe(3)
+
+    const explicitStreaming = normalizeSettings({
+      profiles: [
+        createDefaultOpenAIProfile({ streamImages: true, streamPartialImages: 2 }),
+      ],
+    })
+
+    expect(explicitStreaming.streamImages).toBe(true)
+    expect(explicitStreaming.profiles[0].streamImages).toBe(true)
+    expect(explicitStreaming.profiles[0].streamPartialImages).toBe(2)
 
     const clamped = normalizeSettings({
       profiles: [

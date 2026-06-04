@@ -123,7 +123,7 @@ describe('callImageApi', () => {
     ])
   })
 
-  it('requests Images API streaming by default', async () => {
+  it('does not request Images API streaming by default', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
       data: [{ b64_json: 'aW1hZ2U=' }],
     }), {
@@ -140,8 +140,8 @@ describe('callImageApi', () => {
 
     const [, init] = fetchMock.mock.calls[0]
     const body = JSON.parse(String((init as RequestInit).body))
-    expect(body.stream).toBe(true)
-    expect(body.partial_images).toBe(3)
+    expect(body.stream).toBeUndefined()
+    expect(body.partial_images).toBeUndefined()
   })
 
   it('preserves explicit Images API streaming opt-out', async () => {
@@ -573,6 +573,34 @@ describe('callImageApi', () => {
       message: expect.stringContaining('sub2api 源站生成超时'),
       status: 524,
       rawResponsePayload: expect.stringContaining('A timeout occurred'),
+    })
+  })
+
+  it('explains upstream image-output failures from compatible gateways', async () => {
+    vi.stubEnv('VITE_API_PROXY_AVAILABLE', 'true')
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
+      error: {
+        message: 'upstream did not return image output',
+      },
+    }), {
+      status: 502,
+      headers: { 'Content-Type': 'application/json' },
+    }))
+
+    await expect(callImageApi({
+      settings: {
+        ...DEFAULT_SETTINGS,
+        apiKey: 'test-key',
+        apiProxy: true,
+        baseUrl: 'https://sub2api.simplaj.top/',
+      },
+      prompt: 'prompt',
+      params: { ...DEFAULT_PARAMS },
+      inputImageDataUrls: [],
+    })).rejects.toMatchObject({
+      message: expect.stringContaining('上游没有返回图片结果'),
+      status: 502,
+      rawResponsePayload: expect.stringContaining('upstream did not return image output'),
     })
   })
 

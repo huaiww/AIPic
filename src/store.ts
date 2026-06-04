@@ -16,7 +16,7 @@ import type {
   ResponsesApiResponse,
   ResponsesOutputItem,
 } from './types'
-import { DEFAULT_AGENT_MAX_TOOL_ROUNDS, DEFAULT_PARAMS, DEFAULT_STREAM_PARTIAL_IMAGES } from './types'
+import { DEFAULT_AGENT_MAX_TOOL_ROUNDS, DEFAULT_PARAMS } from './types'
 import { DEFAULT_SETTINGS, getActiveApiProfile, getCustomProviderDefinition, mergeImportedSettings, normalizeSettings, validateApiProfile } from './lib/apiProfiles'
 import { dismissAllTooltips } from './lib/tooltipDismiss'
 import { remapImageMentionsForOrder, replaceImageMentionsForApi } from './lib/promptImageMentions'
@@ -568,8 +568,8 @@ function migrateDefaultApiProxySettings(settings: unknown): unknown {
     return {
       ...profile,
       apiProxy: DEFAULT_SETTINGS.apiProxy,
-      streamImages: true,
-      streamPartialImages: Math.max(profile.streamPartialImages ?? DEFAULT_SETTINGS.streamPartialImages ?? 0, DEFAULT_STREAM_PARTIAL_IMAGES),
+      streamImages: DEFAULT_SETTINGS.streamImages,
+      streamPartialImages: profile.streamPartialImages ?? DEFAULT_SETTINGS.streamPartialImages,
     }
   })
 
@@ -1482,7 +1482,7 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'gpt-image-playground',
-      version: 3,
+      version: 4,
       migrate: (persistedState) => migratePersistedState(persistedState),
       partialize: getPersistedState,
       merge: mergePersistedState,
@@ -1696,10 +1696,6 @@ function getApiProfileForRequest(profile: ApiProfile): ApiProfile {
   if (normalizeBaseUrl(profile.baseUrl) !== defaultBaseUrl) return profile
   const patch: Partial<ApiProfile> = {}
   if (!profile.apiProxy && isApiProxyAvailable()) patch.apiProxy = true
-  if (profile.apiMode === 'images') {
-    patch.streamImages = true
-    patch.streamPartialImages = Math.max(profile.streamPartialImages ?? DEFAULT_SETTINGS.streamPartialImages ?? 0, DEFAULT_STREAM_PARTIAL_IMAGES)
-  }
   return Object.keys(patch).length ? { ...profile, ...patch } : profile
 }
 
