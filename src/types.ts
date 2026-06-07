@@ -126,6 +126,12 @@ export interface InputImage {
   id: string
   /** data URL，用于预览 */
   dataUrl: string
+  /** 前端输入队列元信息，不参与模型请求 */
+  meta?: {
+    source?: 'built-in-film-scene' | 'custom-film-scene' | 'graduate-background'
+    sceneId?: string
+    label?: string
+  }
 }
 
 export interface MaskDraft {

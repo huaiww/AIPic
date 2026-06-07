@@ -611,6 +611,10 @@ function getLatestAgentConversation(conversations: AgentConversation[]) {
   }, null)
 }
 
+function getPersistableInputImage(img: InputImage): InputImage {
+  return { ...img, dataUrl: '' }
+}
+
 export function getPersistedState(state: AppState) {
   const settings = normalizeSettings(state.settings)
   const galleryInputDraft = getPersistableGalleryInputDraft(state)
@@ -620,13 +624,13 @@ export function getPersistedState(state: AppState) {
     ...(settings.persistInputOnRestart && (state.appMode === 'gallery' || galleryInputDraft)
       ? {
           prompt: galleryInputDraft?.prompt ?? '',
-          inputImages: galleryInputDraft?.inputImages.map((img) => ({ id: img.id, dataUrl: '' })) ?? [],
+          inputImages: galleryInputDraft?.inputImages.map(getPersistableInputImage) ?? [],
         }
       : {}),
     dismissedCodexCliPrompts: state.dismissedCodexCliPrompts,
     appMode: state.appMode,
     galleryInputDraft: settings.persistInputOnRestart && galleryInputDraft
-      ? { ...galleryInputDraft, inputImages: galleryInputDraft.inputImages.map((img) => ({ id: img.id, dataUrl: '' })) }
+      ? { ...galleryInputDraft, inputImages: galleryInputDraft.inputImages.map(getPersistableInputImage) }
       : null,
     ...(agentConversationMigrationPending && !agentConversationPersistenceReady
       ? { agentConversations: getPersistableAgentConversations(state.agentConversations) }
@@ -893,7 +897,16 @@ function normalizeInputImages(value: unknown): InputImage[] {
   return value
     .map((img): InputImage | null => {
       if (!isRecord(img) || typeof img.id !== 'string') return null
-      return { id: img.id, dataUrl: typeof img.dataUrl === 'string' ? img.dataUrl : '' }
+      const rawMeta = isRecord(img.meta) ? img.meta : null
+      let meta: InputImage['meta'] | undefined
+      if (rawMeta?.source === 'built-in-film-scene' || rawMeta?.source === 'custom-film-scene' || rawMeta?.source === 'graduate-background') {
+        meta = {
+          source: rawMeta.source,
+          sceneId: typeof rawMeta.sceneId === 'string' ? rawMeta.sceneId : undefined,
+          label: typeof rawMeta.label === 'string' ? rawMeta.label : undefined,
+        }
+      }
+      return { id: img.id, dataUrl: typeof img.dataUrl === 'string' ? img.dataUrl : '', ...(meta ? { meta } : {}) }
     })
     .filter((img): img is InputImage => img != null)
 }
@@ -1057,7 +1070,7 @@ function getPersistableAgentInputDrafts(state: AppState) {
     if (!conversationIds.has(conversationId) || isEmptyAgentInputDraft(draft)) continue
     persistable[conversationId] = {
       ...copyAgentInputDraft(draft),
-      inputImages: draft.inputImages.map((img) => ({ id: img.id, dataUrl: '' })),
+      inputImages: draft.inputImages.map(getPersistableInputImage),
     }
   }
   return persistable

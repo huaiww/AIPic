@@ -14,7 +14,7 @@ services:
       ENABLE_API_PROXY: "${ENABLE_API_PROXY:-true}"
       LOCK_API_PROXY: "${LOCK_API_PROXY:-true}"
       PROMO_API_URL: "${PROMO_API_URL:-https://sub2api.simplaj.top/}"
-      PROMO_API_LABEL: "${PROMO_API_LABEL:-低价稳定中转站}"
+      PROMO_API_LABEL: "${PROMO_API_LABEL:-稳定API中转站，注册送5刀，可免费修10张图}"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null || exit 1"]
       interval: 30s

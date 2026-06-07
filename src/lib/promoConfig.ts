@@ -1,7 +1,7 @@
 import { readRuntimeEnv } from './runtimeEnv'
 
 export const DEFAULT_PROMO_API_URL = 'https://sub2api.simplaj.top/'
-export const DEFAULT_PROMO_API_LABEL = '低价稳定中转站'
+export const DEFAULT_PROMO_API_LABEL = '稳定API中转站，注册送5刀，可免费修10张图'
 
 export interface PromoApiConfig {
   url: string

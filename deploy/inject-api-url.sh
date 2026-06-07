@@ -3,7 +3,7 @@
 # 用环境变量替换前端默认 API URL。显式传入空字符串时保留为空。
 DEFAULT_DOCKER_API_URL="https://sub2api.simplaj.top/"
 DEFAULT_DOCKER_PROMO_API_URL="https://sub2api.simplaj.top/"
-DEFAULT_DOCKER_PROMO_API_LABEL="低价稳定中转站"
+DEFAULT_DOCKER_PROMO_API_LABEL="稳定API中转站，注册送5刀，可免费修10张图"
 
 if [ "${DEFAULT_API_URL+x}" != "x" ]; then
     DEFAULT_API_URL=${API_URL:-$DEFAULT_DOCKER_API_URL}

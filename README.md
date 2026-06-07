@@ -79,7 +79,7 @@ https://simplaj-docs.pages.dev/
 默认顶部入口显示：
 
 ```text
-https://sub2api.simplaj.top/ 低价稳定中转站
+https://sub2api.simplaj.top/ 稳定API中转站，注册送5刀，可免费修10张图
 ```
 
 如果要换成自己的中转站、购买页或文档页，可以在构建时配置：
@@ -168,7 +168,7 @@ docker run -d \
   -e ENABLE_API_PROXY=true \
   -e LOCK_API_PROXY=true \
   -e PROMO_API_URL=https://sub2api.simplaj.top/ \
-  -e PROMO_API_LABEL=低价稳定中转站 \
+  -e PROMO_API_LABEL=稳定API中转站，注册送5刀，可免费修10张图 \
   aipic:local
 ```
 
@@ -194,7 +194,7 @@ docker rm -f aipic
 | `ENABLE_API_PROXY` | `true` | 是否启用 `/api-proxy/` 同源代理 |
 | `LOCK_API_PROXY` | `true` | 是否强制走代理，避免用户误关后触发 CORS |
 | `PROMO_API_URL` | `https://sub2api.simplaj.top/` | 顶部中转站入口跳转地址 |
-| `PROMO_API_LABEL` | `低价稳定中转站` | 顶部中转站入口显示文案 |
+| `PROMO_API_LABEL` | `稳定API中转站，注册送5刀，可免费修10张图` | 顶部中转站入口显示文案 |
 
 修改端口示例：
 

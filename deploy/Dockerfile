@@ -27,7 +27,7 @@ ENV API_PROXY_URL=https://sub2api.simplaj.top/v1
 ENV ENABLE_API_PROXY=true
 ENV LOCK_API_PROXY=true
 ENV PROMO_API_URL=https://sub2api.simplaj.top/
-ENV PROMO_API_LABEL=低价稳定中转站
+ENV PROMO_API_LABEL="稳定API中转站，注册送5刀，可免费修10张图"
 
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY deploy/nginx.conf /etc/nginx/templates/default.conf.template
